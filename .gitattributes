@@ -1,0 +1,18 @@
+# Autodetect text files
+* text=auto
+
+# Enforce text mode
+*.c text
+*.cmake text
+*.conf text
+*.cpp text
+*.h text
+*.in text
+*.md text
+*.yml text
+*.txt text
+
+# Binary files
+*.ico binary
+*.png binary
+*.jar binary
