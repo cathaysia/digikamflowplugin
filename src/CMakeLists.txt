@@ -1,7 +1,6 @@
 set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
 
 add_subdirectory(FlowLayout)
 include_directories(FlowLayout)
