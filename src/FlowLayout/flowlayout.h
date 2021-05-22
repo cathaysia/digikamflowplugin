@@ -34,25 +34,25 @@ namespace Z {
 /**
  * @todo write docs
  */
-class FlowLayout :  public QLayout
-{
+class FlowLayout : public QLayout {
 public:
     FlowLayout(QWidget* parent = nullptr);
     ~FlowLayout();
-    void addItem(QLayoutItem * item) override;
-    int count() const override;
-    QLayoutItem * itemAt(int index) const override;
-    QLayoutItem * takeAt(int index) override;
-    void         setGeometry(const QRect&r) override;
+    int          count() const override;
+    void         addItem(QLayoutItem* item) override;
+    void         setGeometry(const QRect& r) override;
+    qreal        innerHeight();
     QSize        sizeHint() const override;
-    qreal innerHeight();
+    QLayoutItem* itemAt(int index) const override;
+    QLayoutItem* takeAt(int index) override;
+    const QList<QLayoutItem*> list() const;
 
     /**
      * @brief 设置布局内窗口的宽度。布局时根据 sizeHint() 对部件进行缩放。
      *
      * @param size 若 size = -1，则根据部件的 sizeHint() 设置宽度，否则设置为 size
      */
-    void setWidgetWidth(size_t size);
+    void          setWidgetWidth(size_t size);
     inline size_t widgetWidth();
 
 protected:
@@ -64,11 +64,11 @@ protected:
 
 private:
     QList<QLayoutItem*> list_;
-    size_t width_ = -1;
-    std::atomic<qreal> inner_height_;
-//     qreal inner_height_ = 0;
+    size_t              width_ = -1;
+    std::atomic<qreal>  inner_height_;
+    //     qreal inner_height_ = 0;
 };
 
-}
+}    // namespace Z
 
-#endif // Z_FLOWLAYOUT_H
+#endif    // Z_FLOWLAYOUT_H

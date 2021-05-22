@@ -28,6 +28,8 @@ public:
     QList<DPluginAuthor> authors() const override;
 
     void setup(QObject* const) override;
+signals:
+    void imagePathResponse(const QString path);
 
 protected:
     void flowView();

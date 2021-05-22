@@ -96,19 +96,16 @@ void PicFlowView::setup(QObject* const parent) {
 }
 
 void PicFlowView::flowView() {
-    //     auto* const iface = infoIface(sender());
+    auto* const iface = infoIface(sender());
 
-    //     for(auto& item: iface->currentAlbumItems()) {
-    //         QLabel* img = new QLabel();
-    //         QString imgPath = item.toString().replace("file://", "");
-    //         img->setPixmap(QPixmap(imgPath));
-    //         img->setScaledContents(true);
-    //         content_->addWidget(img);
-    //     }
-    /**
-     * @todo
-     * content_.length == 0 时会越界导致 core dump
-     */
+    for(auto& item: iface->currentAlbumItems()) {
+        QString imgPath = item.toString().replace("file://", "");
+        QLabel* img     = new QLabel();
+        img->setPixmap(QPixmap(imgPath));
+        img->setScaledContents(true);
+        content_->addWidget(img);
+    }
+
     content_->parentWidget()->resize(800, content_->innerHeight());
     main_dialog_->resize(800, 600);
     main_dialog_->show();

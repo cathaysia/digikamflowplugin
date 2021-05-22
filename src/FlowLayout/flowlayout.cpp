@@ -37,6 +37,11 @@ FlowLayout::~FlowLayout() {
     while((item = takeAt(0))) delete item;
 }
 
+/**
+ * @brief 添加时不进行检查是否有重复项
+ *
+ * @param item p_item:...
+ */
 void FlowLayout::addItem(QLayoutItem* item) {
     list_.append(item);
 }
@@ -72,6 +77,10 @@ size_t FlowLayout::widgetWidth() {
 
 qreal FlowLayout::innerHeight() {
     return inner_height_;
+}
+
+const QList<QLayoutItem*> FlowLayout::list() const {
+    return list_;
 }
 
 void FlowLayout::doMonoLayout() {
