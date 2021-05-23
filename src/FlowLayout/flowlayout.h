@@ -28,6 +28,7 @@
 #include <QLayout>
 #include <thread>
 class QWidget;
+class QTimer;
 
 namespace Z {
 
@@ -66,6 +67,7 @@ private:
     QList<QLayoutItem*> list_;
     size_t              width_ = -1;
     std::atomic<qreal>  inner_height_;
+    QTimer* timer_;
     //     qreal inner_height_ = 0;
 };
 

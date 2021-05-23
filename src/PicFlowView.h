@@ -2,9 +2,10 @@
 #define DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN
 
 #include <digikam/dplugingeneric.h>
+#include <digikam/coredbaccess.h>
+
+
 #include <flowlayout.h>
-#include <QObject>
-#include <QResizeEvent>
 
 #define DPLUGIN_IID "org.kde.digikam.plugin.generic.FlowView"
 

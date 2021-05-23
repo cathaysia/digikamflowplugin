@@ -17,9 +17,6 @@
 #include <digikam/dinfointerface.h>
 #include <digikam/dmessagebox.h>
 
-#include <iostream>
-#include <thread>
-
 #include <flowlayout.h>
 
 namespace Cathaysia {
@@ -45,6 +42,7 @@ PicFlowView::PicFlowView(QObject* const parent)
 
 PicFlowView::~PicFlowView() noexcept {
     if(main_dialog_) delete main_dialog_;
+    if(content_) delete content_;
 }
 
 QString PicFlowView::name() const {
@@ -93,11 +91,11 @@ void PicFlowView::setup(QObject* const parent) {
     ac->setText("PicFlowView");
     connect(ac, &DPluginAction::triggered, this, &PicFlowView::flowView);
     addAction(ac);
+
 }
 
 void PicFlowView::flowView() {
     auto* const iface = infoIface(sender());
-
     for(auto& item: iface->currentAlbumItems()) {
         QString imgPath = item.toString().replace("file://", "");
         QLabel* img     = new QLabel();
@@ -105,7 +103,6 @@ void PicFlowView::flowView() {
         img->setScaledContents(true);
         content_->addWidget(img);
     }
-
     content_->parentWidget()->resize(800, content_->innerHeight());
     main_dialog_->resize(800, 600);
     main_dialog_->show();

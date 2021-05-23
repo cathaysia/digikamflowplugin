@@ -27,11 +27,17 @@
 #include <QDebug>
 #include <QRect>
 #include <QWidget>
+#include <QTimer>
+
 #include <functional>
 #include <iostream>
 
 namespace Z {
-FlowLayout::FlowLayout(QWidget* parent) : QLayout(parent), inner_height_(0) { }
+FlowLayout::FlowLayout(QWidget* parent) : QLayout(parent), inner_height_(0), timer_{new QTimer} {
+    // 延迟刷新
+    timer_->setInterval(300);
+    connect(timer_, &QTimer::timeout, this, &FlowLayout::update);
+}
 FlowLayout::~FlowLayout() {
     QLayoutItem* item = nullptr;
     while((item = takeAt(0))) delete item;
@@ -45,7 +51,7 @@ FlowLayout::~FlowLayout() {
 void FlowLayout::addItem(QLayoutItem* item) {
     list_.append(item);
     // 这里不 update 的话，没有 resize 之前，item 是叠在一起的
-    this->update();
+    timer_->start();
 }
 int FlowLayout::count() const {
     return list_.length();
@@ -54,10 +60,7 @@ QLayoutItem* FlowLayout::itemAt(int index) const {
     return index >= 0 && index < list_.length() ? list_.at(index) : nullptr;
 }
 QSize FlowLayout::sizeHint() const {
-    /**
-     * @todo 计算一个有有意义的值
-     */
-    return QSize();
+    return QSize(geometry().width(), inner_height_);
 }
 
 QLayoutItem* FlowLayout::takeAt(int index) {
