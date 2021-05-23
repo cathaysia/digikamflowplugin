@@ -6,10 +6,11 @@ project(digikamflowplugin
     HOMEPAGE_URL https://github.com/cathaysia/digikamflowplugin)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
-
 include(FeatureSummary)
 include(CMakePrintHelpers)
 
+add_subdirectory(extern/QtFlowLayout)
+include_directories(extern/QtFlowLayout)
 add_subdirectory(src)
 
 set(CPACK_PACKAGE_VENDOR Z)

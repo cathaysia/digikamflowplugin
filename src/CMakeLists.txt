@@ -2,8 +2,6 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_AUTOMOC ON)
 
-add_subdirectory(FlowLayout)
-include_directories(FlowLayout)
 find_package(Qt5 NO_MODULE COMPONENTS Core Widgets Gui REQUIRED)
 
 find_package(DigikamCore CONFIG REQUIRED)
@@ -19,8 +17,9 @@ add_library(
     PicFlowView.cpp
 )
 
-set_target_properties(PicFlowView PROPERTIES PREFIX "")
-
+set_target_properties(PicFlowView
+    PROPERTIES PREFIX ""
+    LINK_WHAT_YOU_USE ON)
 target_include_directories(
     PicFlowView PRIVATE
     Digikam::digikamcore
@@ -47,4 +46,4 @@ include(${DIGIKAM_PLUGIN_CONFIG})
 cmake_print_variables(DPluginGenericInstallPath)
 # 这里需要使用相对路径，否则 CPack 不识别
 install(TARGETS PicFlowView
-    LIBRARY DESTINATION ${DPluginGenericInstallPath})
+    LIBRARY DESTINATION "${DPluginGenericInstallPath}")
