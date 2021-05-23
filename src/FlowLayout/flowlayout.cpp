@@ -26,14 +26,14 @@
 #include "flowlayout.h"
 #include <QDebug>
 #include <QRect>
-#include <QWidget>
 #include <QTimer>
+#include <QWidget>
 
 #include <functional>
 #include <iostream>
 
 namespace Z {
-FlowLayout::FlowLayout(QWidget* parent) : QLayout(parent), inner_height_(0), timer_{new QTimer} {
+FlowLayout::FlowLayout(QWidget* parent) : QLayout(parent), inner_height_(0), timer_ { new QTimer } {
     // 延迟刷新
     timer_->setInterval(300);
     connect(timer_, &QTimer::timeout, this, &FlowLayout::update);
@@ -88,10 +88,9 @@ const QList<QLayoutItem*> FlowLayout::list() const {
     return list_;
 }
 
-
 void FlowLayout::doMonoLayout() {
     assert(width_ != -1);
-    if(list_.length() <=0) return;
+    if(list_.length() <= 0) return;
     // 一行内有 n 个 widget 和 n-1 个 spacing
     // n*width_ + (n-1)*spacing = this->width()
     // n*(width_+spacing) - spacing = this.width()
@@ -110,19 +109,17 @@ void FlowLayout::doMonoLayout() {
     auto  yFlags    = std::make_shared<std::vector<int>>();
     yFlags->resize(n);
 
-    int   xFlag      = 0;
     qreal realHeight = 0;
-    int min = 0;
+    int   min        = 0;
     for(size_t i = 0; i < list_.length(); ++i) {
         // realHieght = realWidth*(y/x)
         // ry/rx=y/x ==> ry=rx*y/x
         realHeight = realWidth * list_[i]->sizeHint().rheight() / list_[i]->sizeHint().rwidth();
-        list_[i]->setGeometry(QRect(xFlag, (*yFlags)[min], realWidth, realHeight));
+        list_[i]->setGeometry(QRect(min * (spacing() + realWidth), (*yFlags)[min], realWidth, realHeight));
         (*yFlags)[min] += (realHeight + spacing());
-        xFlag = xFlag + realWidth + spacing() > this->geometry().width() ? 0 : xFlag + realWidth + spacing();
-        //
-        for(int i =0; i<yFlags->size(); ++i){
-            if(yFlags->at(i)<yFlags->at(min)) min = i;
+        // 选出最短的一个
+        for(int i = 0; i < yFlags->size(); ++i) {
+            if(yFlags->at(i) < yFlags->at(min)) min = i;
         }
     }
     // 设置父组件的尺寸

@@ -44,7 +44,7 @@ find_file(DIGIKAM_PLUGIN_CONFIG DigikamPluginConfig.cmake
     HINTS /usr/lib/cmake/DigikamPlugin/
 )
 include(${DIGIKAM_PLUGIN_CONFIG})
-message(STATUS "PicFlowView will be installed to /usr/${DPluginGenericInstallPath}")
-install(TARGETS PicFlowView DESTINATION /usr/${DPluginGenericInstallPath})
-
-
+cmake_print_variables(DPluginGenericInstallPath)
+# 这里需要使用相对路径，否则 CPack 不识别
+install(TARGETS PicFlowView
+    LIBRARY DESTINATION ${DPluginGenericInstallPath})
