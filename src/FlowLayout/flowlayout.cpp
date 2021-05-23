@@ -44,6 +44,8 @@ FlowLayout::~FlowLayout() {
  */
 void FlowLayout::addItem(QLayoutItem* item) {
     list_.append(item);
+    // 这里不 update 的话，没有 resize 之前，item 是叠在一起的
+    this->update();
 }
 int FlowLayout::count() const {
     return list_.length();
@@ -83,8 +85,10 @@ const QList<QLayoutItem*> FlowLayout::list() const {
     return list_;
 }
 
+
 void FlowLayout::doMonoLayout() {
     assert(width_ != -1);
+    if(list_.length() <=0) return;
     // 一行内有 n 个 widget 和 n-1 个 spacing
     // n*width_ + (n-1)*spacing = this->width()
     // n*(width_+spacing) - spacing = this.width()
@@ -105,13 +109,18 @@ void FlowLayout::doMonoLayout() {
 
     int   xFlag      = 0;
     qreal realHeight = 0;
+    int min = 0;
     for(size_t i = 0; i < list_.length(); ++i) {
         // realHieght = realWidth*(y/x)
         // ry/rx=y/x ==> ry=rx*y/x
         realHeight = realWidth * list_[i]->sizeHint().rheight() / list_[i]->sizeHint().rwidth();
-        list_[i]->setGeometry(QRect(xFlag, (*yFlags)[i % n], realWidth, realHeight));
-        (*yFlags)[i % n] += (realHeight + spacing());
+        list_[i]->setGeometry(QRect(xFlag, (*yFlags)[min], realWidth, realHeight));
+        (*yFlags)[min] += (realHeight + spacing());
         xFlag = xFlag + realWidth + spacing() > this->geometry().width() ? 0 : xFlag + realWidth + spacing();
+        //
+        for(int i =0; i<yFlags->size(); ++i){
+            if(yFlags->at(i)<yFlags->at(min)) min = i;
+        }
     }
     // 设置父组件的尺寸
     int maxHeight = 0;
