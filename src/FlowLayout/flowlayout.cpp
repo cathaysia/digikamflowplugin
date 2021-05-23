@@ -123,12 +123,8 @@ void FlowLayout::doMonoLayout() {
         }
     }
     // 设置父组件的尺寸
-    int maxHeight = 0;
-    std::for_each(yFlags->begin(), yFlags->end(), [&maxHeight](int val) {
-        if(val > maxHeight) maxHeight = val;
-    });
-    this->parentWidget()->resize(this->geometry().width(), maxHeight);
-    inner_height_ = maxHeight;
+    inner_height_ = *(std::max_element(yFlags->begin(), yFlags->end()));
+    this->parentWidget()->resize(this->geometry().width(), inner_height_);
 }
 
 }    // namespace Z
