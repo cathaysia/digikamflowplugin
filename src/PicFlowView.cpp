@@ -96,6 +96,15 @@ void PicFlowView::setup(QObject* const parent) {
 
 void PicFlowView::flowView() {
     auto* const iface = infoIface(sender());
+    // 首先清空容器内
+    if(content_){
+        auto parent = content_->parentWidget();
+        parent->setLayout(nullptr);
+        delete content_;
+        content_ = new Z::FlowLayout;
+        content_->setWidgetWidth(300);
+        parent->setLayout(content_);
+    }
     for(auto& item: iface->currentAlbumItems()) {
         QString imgPath = item.toString().replace("file://", "");
         QLabel* img     = new QLabel();
