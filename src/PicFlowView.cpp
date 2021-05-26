@@ -3,7 +3,9 @@
 #include <QApplication>
 #include <QDialog>
 #include <QDir>
+#include <QDoubleSpinBox>
 #include <QHBoxLayout>
+#include <QInputDialog>
 #include <QLabel>
 #include <QList>
 #include <QMenu>
@@ -36,8 +38,6 @@ PicFlowView::PicFlowView(QObject* const parent)
 
     scrollWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollWidget->setWidget(box);
-    // 设置图片的理想宽度
-    content_->setWidgetWidth(300);
 }
 
 PicFlowView::~PicFlowView() noexcept {
@@ -89,21 +89,29 @@ void PicFlowView::setup(QObject* const parent) {
     ac->setObjectName(QLatin1String("PiclLowView"));
     ac->setActionCategory(DPluginAction::ActionCategory::GenericView);
     ac->setText("PicFlowView");
+    // 添加菜单项
+    auto setting     = new QMenu;
+    auto widthAction = setting->addAction(tr("设置参考宽度"));
+    widthAction->setWhatsThis(tr("设置图片的参考宽度，图片的宽度会在更<b>倾向于</b>选择此宽度"));
+    // 添加设置
+    connect(widthAction, &QAction::triggered, [this]() {
+        bool ok     = false;
+        auto result = QInputDialog::getDouble(nullptr, tr("输入参考宽度"), tr("参考宽度"), 300, 10, 9999, 1, &ok);
+        if(ok) this->width_ = result;
+    });
+    ac->setMenu(setting);
     connect(ac, &DPluginAction::triggered, this, &PicFlowView::flowView);
     addAction(ac);
-
 }
 
 void PicFlowView::flowView() {
     auto* const iface = infoIface(sender());
-    // 首先清空容器内
-    if(content_){
-        auto parent = content_->parentWidget();
-        parent->setLayout(nullptr);
-        delete content_;
-        content_ = new Z::FlowLayout;
-        content_->setWidgetWidth(300);
-        parent->setLayout(content_);
+    // 设置图片的参考宽度
+    content_->setWidgetWidth(width_);
+    // 首先清空容器内的元素
+    while(content_->list().length()) {
+        // 若容器内的元素不为零
+        content_->takeAt(0);
     }
     for(auto& item: iface->currentAlbumItems()) {
         QString imgPath = item.toString().replace("file://", "");

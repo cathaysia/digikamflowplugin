@@ -1,9 +1,8 @@
 #ifndef DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN
 #define DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN
 
-#include <digikam/dplugingeneric.h>
 #include <digikam/coredbaccess.h>
-
+#include <digikam/dplugingeneric.h>
 
 #include <flowlayout.h>
 
@@ -37,6 +36,11 @@ protected:
     bool eventFilter(QObject* watched, QEvent* event) override;
 
 private:
+    /**
+     * @brief 图片的参考宽度
+     *
+     */
+    qreal          width_ = 300;
     QDialog*       main_dialog_;
     Z::FlowLayout* content_;
 };
