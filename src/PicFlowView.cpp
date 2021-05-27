@@ -21,6 +21,10 @@
 
 #include <flowlayout.h>
 
+#include <chrono>
+#include <semaphore>
+#include <vector>
+
 namespace Cathaysia {
 
 PicFlowView::PicFlowView(QObject* const parent)
@@ -113,15 +117,55 @@ void PicFlowView::flowView() {
         // 若容器内的元素不为零
         content_->takeAt(0);
     }
-    for(auto& item: iface->currentAlbumItems()) {
-        QString imgPath = item.toString().replace("file://", "");
-        QLabel* img     = new QLabel();
-        img->setPixmap(QPixmap(imgPath));
-        img->setScaledContents(true);
-        content_->addWidget(img);
-    }
+    // 先显示
     content_->parentWidget()->resize(800, content_->innerHeight());
     main_dialog_->resize(800, 600);
     main_dialog_->show();
+    /**
+     * @todo
+     *  QImage 的生成放在子线程中
+     * 可以使用生产者-消费者
+     */
+    std::vector<QPixmap> imgBuf;
+    std::atomic_bool     over = false;
+
+    std::binary_semaphore semMutex(1);
+    std::binary_semaphore empty(10);
+    std::binary_semaphore full(0);
+
+    // 生产者线程
+    std::thread producer([&semMutex, &empty, &full, &imgBuf, &iface, &over]() {
+        for(auto& item: iface->currentAlbumItems()) {
+            empty.acquire();
+            semMutex.acquire();
+
+            QString imgPath = item.toString().replace("file://", "");
+            imgBuf.push_back(QPixmap(imgPath));
+
+            semMutex.release();
+            full.release();
+            using namespace std::chrono_literals;
+        }
+        over = true;
+    });
+    producer.detach();
+    // GUI 消费线程
+    while(!over) {
+        QLabel* img = new QLabel();
+        // 进入临界区
+        full.acquire();
+        semMutex.acquire();
+
+        img->setPixmap(imgBuf.back());
+        imgBuf.pop_back();
+
+        semMutex.release();
+        empty.release();
+        // 离开临界区
+        img->setScaledContents(true);
+        content_->addWidget(img);
+        //         main_dialog_->resize(main_dialog_->size());
+        //         main_dialog_->adjustSize();
+    }
 }
 }    // namespace Cathaysia
