@@ -5,6 +5,7 @@
 #include <digikam/dplugingeneric.h>
 
 #include <flowlayout.h>
+#include <semaphore>
 
 #define DPLUGIN_IID "org.kde.digikam.plugin.generic.FlowView"
 
@@ -28,6 +29,8 @@ public:
     QList<DPluginAuthor> authors() const override;
 
     void setup(QObject* const) override;
+
+
 signals:
     void imagePathResponse(const QString path);
 
@@ -40,9 +43,10 @@ private:
      * @brief 图片的参考宽度
      *
      */
-    qreal          width_ = 300;
-    QDialog*       main_dialog_;
-    Z::FlowLayout* content_;
+    qreal            width_ = 300;
+    QDialog*         main_dialog_;
+    Z::FlowLayout*   content_;
+    std::atomic_bool stop_ = false;
 };
 
 }    // namespace Cathaysia

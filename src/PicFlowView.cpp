@@ -2,6 +2,7 @@
 
 // 标准库
 #include <chrono>
+#include <exception>
 #include <list>
 #include <semaphore>
 
@@ -90,6 +91,12 @@ bool PicFlowView::eventFilter(QObject* watched, QEvent* event) {
     if(event->type() == QEvent::Resize) {
         content_->parentWidget()->resize(main_dialog_->width(), content_->innerHeight());
         return true;
+    } else if(event->type() == QEvent::Close) {
+        stop_ = true;
+        return true;
+    } else if(event->type() == QEvent::Show) {
+        stop_ = false;
+        return true;
     }
     return false;
 }
@@ -130,11 +137,7 @@ void PicFlowView::flowView() {
     content_->parentWidget()->resize(800, content_->innerHeight());
     main_dialog_->resize(800, 600);
     main_dialog_->show();
-    /**
-     * @todo
-     *  QImage 的生成放在子线程中
-     * 可以使用生产者-消费者
-     */
+
     std::list<QPixmap> imgBuf;
     std::atomic_bool   over = false;
 
@@ -143,35 +146,35 @@ void PicFlowView::flowView() {
     std::binary_semaphore full(0);
 
     // 生产者线程
-    std::thread producer([&semMutex, &empty, &full, &imgBuf, &iface, &over]() {
+    std::thread producer([&semMutex, &empty, &full, &imgBuf, &iface, &over, this]() {
         for(auto& item: iface->currentAlbumItems()) {
-            empty.acquire();
-            semMutex.acquire();
+            // 查看是否需要中断线程
+            if(stop_) {
+                qDebug() << "中断线程";
+                // 清理现场
+                over = true;
+                return;
+            }
 
             QString imgPath = item.toString().replace("file://", "");
             QPixmap pix(imgPath);
+
             if(!pix.isNull()) {
+                empty.acquire();
+                semMutex.acquire();
+
                 imgBuf.push_back(pix);
+
                 semMutex.release();
-                // 只有在图片加载的时候才释放 full
                 full.release();
-            } else {
-                semMutex.release();
             }
         }
         over = true;
     });
     producer.detach();
-    /**
-     * @todo 修复 bug
-     *
-     * 现在存在第二次添加的图层重叠的问题
-     *
-     */
     // 先对数据检查一遍
     bool hasVaildImg    = false;
     auto supportFormats = QImageReader::supportedImageFormats();
-    qDebug() << supportFormats;
     for(auto& item: iface->currentAlbumItems()) {
         for(auto& suffix: supportFormats) {
             hasVaildImg = item.toString().endsWith(suffix);
@@ -179,12 +182,12 @@ void PicFlowView::flowView() {
         }
         if(hasVaildImg) break;
     }
-    qDebug() << hasVaildImg;
-
     if(!hasVaildImg) return;
     // GUI 消费线程
     while(!over || imgBuf.size()) {
         QLabel* img = new QLabel();
+        // 防止程序被中断后依然尝试获取资源
+        if(over) return;
         // 进入临界区
         full.acquire();
         semMutex.acquire();
