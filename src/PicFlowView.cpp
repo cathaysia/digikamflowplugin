@@ -120,7 +120,12 @@ void PicFlowView::flowView() {
     // 设置图片的参考宽度
     content_->setWidgetWidth(width_);
     // 首先清空容器内的元素
-    while(content_->list().length()) { content_->takeAt(0); }
+    while(content_->list().length()) {
+        auto item = content_->takeAt(0);
+        // 防止第二次添加时出现重叠问题
+        item->widget()->setParent(nullptr);
+        delete item;
+    }
     // 先显示
     content_->parentWidget()->resize(800, content_->innerHeight());
     main_dialog_->resize(800, 600);
