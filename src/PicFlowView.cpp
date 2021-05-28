@@ -1,5 +1,11 @@
 #include "PicFlowView.h"
 
+// 标准库
+#include <chrono>
+#include <list>
+#include <semaphore>
+
+// Qt 库
 #include <QApplication>
 #include <QDialog>
 #include <QDir>
@@ -14,16 +20,14 @@
 #include <QThread>
 #include <QTranslator>
 
+// digikam 库
 #include <digikam/coredbaccess.h>
 #include <digikam/dbengineaction.h>
 #include <digikam/dinfointerface.h>
 #include <digikam/dmessagebox.h>
 
+// 本地库
 #include <flowlayout.h>
-
-#include <chrono>
-#include <semaphore>
-#include <vector>
 
 namespace Cathaysia {
 
@@ -126,8 +130,8 @@ void PicFlowView::flowView() {
      *  QImage 的生成放在子线程中
      * 可以使用生产者-消费者
      */
-    std::vector<QPixmap> imgBuf;
-    std::atomic_bool     over = false;
+    std::list<QPixmap> imgBuf;
+    std::atomic_bool   over = false;
 
     std::binary_semaphore semMutex(1);
     std::binary_semaphore empty(10);
@@ -155,8 +159,8 @@ void PicFlowView::flowView() {
         full.acquire();
         semMutex.acquire();
 
-        img->setPixmap(imgBuf.back());
-        imgBuf.pop_back();
+        img->setPixmap(imgBuf.front());
+        imgBuf.pop_front();
 
         semMutex.release();
         empty.release();
