@@ -144,13 +144,12 @@ void PicFlowView::flowView() {
 
             semMutex.release();
             full.release();
-            using namespace std::chrono_literals;
         }
         over = true;
     });
     producer.detach();
     // GUI 消费线程
-    while(!over) {
+    while(!over || imgBuf.size()) {
         QLabel* img = new QLabel();
         // 进入临界区
         full.acquire();
@@ -164,8 +163,8 @@ void PicFlowView::flowView() {
         // 离开临界区
         img->setScaledContents(true);
         content_->addWidget(img);
-        //         main_dialog_->resize(main_dialog_->size());
-        //         main_dialog_->adjustSize();
+        // 防止界面卡顿
+        qApp->processEvents();
     }
 }
 }    // namespace Cathaysia
