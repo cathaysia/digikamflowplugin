@@ -11,6 +11,7 @@
 #include <QDir>
 #include <QDoubleSpinBox>
 #include <QHBoxLayout>
+#include <QImageReader>
 #include <QInputDialog>
 #include <QLabel>
 #include <QList>
@@ -39,6 +40,8 @@ PicFlowView::PicFlowView(QObject* const parent)
     auto mainLayout   = new QHBoxLayout;
     auto scrollWidget = new QScrollArea;
     auto box          = new QWidget;
+
+    content_->setParent(box);
 
     main_dialog_->setLayout(mainLayout);
     mainLayout->addWidget(scrollWidget);
@@ -117,10 +120,7 @@ void PicFlowView::flowView() {
     // 设置图片的参考宽度
     content_->setWidgetWidth(width_);
     // 首先清空容器内的元素
-    while(content_->list().length()) {
-        // 若容器内的元素不为零
-        content_->takeAt(0);
-    }
+    while(content_->list().length()) { content_->takeAt(0); }
     // 先显示
     content_->parentWidget()->resize(800, content_->innerHeight());
     main_dialog_->resize(800, 600);
@@ -144,14 +144,39 @@ void PicFlowView::flowView() {
             semMutex.acquire();
 
             QString imgPath = item.toString().replace("file://", "");
-            imgBuf.push_back(QPixmap(imgPath));
-
-            semMutex.release();
-            full.release();
+            QPixmap pix(imgPath);
+            if(!pix.isNull()) {
+                imgBuf.push_back(pix);
+                semMutex.release();
+                // 只有在图片加载的时候才释放 full
+                full.release();
+            } else {
+                semMutex.release();
+            }
         }
         over = true;
     });
     producer.detach();
+    /**
+     * @todo 修复 bug
+     *
+     * 现在存在第二次添加的图层重叠的问题
+     *
+     */
+    // 先对数据检查一遍
+    bool hasVaildImg    = false;
+    auto supportFormats = QImageReader::supportedImageFormats();
+    qDebug() << supportFormats;
+    for(auto& item: iface->currentAlbumItems()) {
+        for(auto& suffix: supportFormats) {
+            hasVaildImg = item.toString().endsWith(suffix);
+            if(hasVaildImg) break;
+        }
+        if(hasVaildImg) break;
+    }
+    qDebug() << hasVaildImg;
+
+    if(!hasVaildImg) return;
     // GUI 消费线程
     while(!over || imgBuf.size()) {
         QLabel* img = new QLabel();
