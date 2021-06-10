@@ -7,6 +7,8 @@
 #include <flowlayout.h>
 #include <semaphore>
 
+#include <utility>
+
 #define DPLUGIN_IID "org.kde.digikam.plugin.generic.FlowView"
 
 using namespace Digikam;
@@ -19,6 +21,7 @@ class PicFlowView : public DPluginGeneric {
     Q_INTERFACES(Digikam::DPluginGeneric)
 
 public:
+    typedef std::pair<QDialog*, Z::FlowLayout*> ShareData;
     explicit PicFlowView(QObject* const parent = nullptr);
     ~PicFlowView() noexcept;
     QString              name() const override;
@@ -33,10 +36,12 @@ public:
 
 signals:
     void imagePathResponse(const QString path);
+    void widthChanged(qreal width);
 
 protected:
     void flowView();
     bool eventFilter(QObject* watched, QEvent* event) override;
+    ShareData getShareData();
 
 private:
     /**
@@ -44,8 +49,6 @@ private:
      *
      */
     qreal            width_ = 300;
-    QDialog*         main_dialog_;
-    Z::FlowLayout*   content_;
     std::atomic_bool stop_ = false;
 };
 

@@ -33,29 +33,9 @@
 
 namespace Cathaysia {
 
-PicFlowView::PicFlowView(QObject* const parent)
-    : DPluginGeneric { parent }, main_dialog_ { new QDialog }, content_ { new Z::FlowLayout } {
-    // 图片的容器的宽度与主窗口保持一致
-    main_dialog_->installEventFilter(this);
-    // 添加 QScrollArea 及其环境
-    auto mainLayout   = new QHBoxLayout;
-    auto scrollWidget = new QScrollArea;
-    auto box          = new QWidget;
+PicFlowView::PicFlowView(QObject* const parent) : DPluginGeneric { parent } { }
 
-    content_->setParent(box);
-
-    main_dialog_->setLayout(mainLayout);
-    mainLayout->addWidget(scrollWidget);
-    box->setLayout(content_);
-
-    scrollWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    scrollWidget->setWidget(box);
-}
-
-PicFlowView::~PicFlowView() noexcept {
-    if(main_dialog_) delete main_dialog_;
-    if(content_) delete content_;
-}
+PicFlowView::~PicFlowView() noexcept { }
 
 QString PicFlowView::name() const {
     return tr("PicFlowPlugin");
@@ -88,8 +68,11 @@ QList<Digikam::DPluginAuthor> PicFlowView::authors() const {
 // clang-format on
 
 bool PicFlowView::eventFilter(QObject* watched, QEvent* event) {
+    auto dialog = qobject_cast<QDialog*>(watched);
+    if(!dialog) return false;
     if(event->type() == QEvent::Resize) {
-        content_->parentWidget()->resize(main_dialog_->width(), content_->innerHeight());
+        auto content = dialog->findChild<Z::FlowLayout*>("FlowLayout");
+        content->parentWidget()->resize(dialog->width(), content->innerHeight());
         return true;
     } else if(event->type() == QEvent::Close) {
         stop_ = true;
@@ -114,29 +97,58 @@ void PicFlowView::setup(QObject* const parent) {
     // 添加设置
     connect(widthAction, &QAction::triggered, [this]() {
         bool ok     = false;
-        auto result = QInputDialog::getDouble(nullptr, tr("输入参考宽度"), tr("参考宽度"), 300, 10, 9999, 1, &ok);
-        if(ok) this->width_ = result;
+        auto result = QInputDialog::getDouble(nullptr, tr("输入参考宽度"), tr("参考宽度"), width_, 10, 9999,
+1, &ok);
+        if(ok) {
+            this->width_ = result;
+            emit widthChanged(result);
+        };
     });
     ac->setMenu(setting);
     connect(ac, &DPluginAction::triggered, this, &PicFlowView::flowView);
     addAction(ac);
 }
 
+Cathaysia::PicFlowView::ShareData PicFlowView::getShareData() {
+    auto mainDialog = new QDialog;
+    auto mainLayout = new Z::FlowLayout;
+    mainLayout->setObjectName("FlowLayout");
+
+    // 图片的容器的宽度与主窗口保持一致
+    mainDialog->installEventFilter(this);
+    // 添加 QScrollArea 及其环境
+    auto dialogLayout = new QHBoxLayout;
+    auto scrollWidget = new QScrollArea;
+    auto box          = new QWidget;
+
+    mainLayout->setParent(box);
+
+    mainDialog->setLayout(dialogLayout);
+    dialogLayout->addWidget(scrollWidget);
+    box->setLayout(mainLayout);
+
+    scrollWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    scrollWidget->setWidget(box);
+    //设置图片的参考宽度
+    mainLayout->setWidgetWidth(width_);
+    //
+    connect(this, &PicFlowView::widthChanged, mainLayout, &Z::FlowLayout::setWidgetWidth);
+    return ShareData(mainDialog, mainLayout);
+}
+
 void PicFlowView::flowView() {
     auto* const iface = infoIface(sender());
-    // 设置图片的参考宽度
-    content_->setWidgetWidth(width_);
-    // 首先清空容器内的元素
-    while(content_->list().length()) {
-        auto item = content_->takeAt(0);
-        // 防止第二次添加时出现重叠问题
-        item->widget()->setParent(nullptr);
-        delete item;
-    }
+    /**
+     * @todo 1. 是否让多个窗口共用一个锁（现在不是）
+     *
+     */
+    auto shareData  = getShareData();
+    auto mainDialog = shareData.first;
+    auto mainLayout = shareData.second;
     // 先显示
-    content_->parentWidget()->resize(800, content_->innerHeight());
-    main_dialog_->resize(800, 600);
-    main_dialog_->show();
+    mainLayout->parentWidget()->resize(800, mainLayout->innerHeight());
+    mainDialog->resize(800, 600);
+    mainDialog->show();
 
     std::list<QPixmap> imgBuf;
     std::atomic_bool   over = false;
@@ -199,7 +211,7 @@ void PicFlowView::flowView() {
         empty.release();
         // 离开临界区
         img->setScaledContents(true);
-        content_->addWidget(img);
+        mainLayout->addWidget(img);
         // 防止界面卡顿
         qApp->processEvents();
     }
