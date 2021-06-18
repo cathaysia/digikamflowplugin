@@ -48,6 +48,7 @@ target_link_libraries(
 include(GNUInstallDirs)
 find_file(DIGIKAM_PLUGIN_CONFIG DigikamPluginConfig.cmake
     HINTS ${CMAKE_INSTALL_FULL_LIBDIR}/cmake/DigikamPlugin/
+    HINTS /usr/lib64/cmake/DigikamPlugin/
     HINTS /usr/lib/cmake/DigikamPlugin/
 )
 include(${DIGIKAM_PLUGIN_CONFIG})
