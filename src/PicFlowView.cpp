@@ -54,7 +54,7 @@ QString PicFlowView::description() const {
 }
 
 QString PicFlowView::details() const {
-    return tr("A plugin private Flow view");
+    return tr("A plugin provide Flow view");
 }
 
 // clang-format off
@@ -67,6 +67,10 @@ QList<Digikam::DPluginAuthor> PicFlowView::authors() const {
 }
 // clang-format on
 
+/**
+ * 窗口大小发生变化时自动更新布局
+ *
+ */
 bool PicFlowView::eventFilter(QObject* watched, QEvent* event) {
     auto dialog = qobject_cast<QDialog*>(watched);
     if(!dialog) return false;
@@ -83,7 +87,10 @@ bool PicFlowView::eventFilter(QObject* watched, QEvent* event) {
     }
     return false;
 }
-
+/**
+ * 插件的基本设置
+ *
+ */
 void PicFlowView::setup(QObject* const parent) {
     DPluginAction* const ac = new DPluginAction(parent);
     ac->setIcon(icon());
@@ -96,19 +103,24 @@ void PicFlowView::setup(QObject* const parent) {
     widthAction->setWhatsThis(tr("设置图片的参考宽度，图片的宽度会在更<b>倾向于</b>选择此宽度"));
     // 添加设置
     connect(widthAction, &QAction::triggered, [this]() {
-        bool ok     = false;
-        auto result = QInputDialog::getDouble(nullptr, tr("输入参考宽度"), tr("参考宽度"), width_, 10, 9999,
-1, &ok);
+        bool ok = false;
+        auto result = QInputDialog::getDouble(nullptr, tr("输入参考宽度"), tr("参考宽度"), width_, 10, 9999, 1, &ok);
         if(ok) {
             this->width_ = result;
             emit widthChanged(result);
         };
     });
     ac->setMenu(setting);
+    /**
+     * 参考宽度变化时自动更新布局
+     */
     connect(ac, &DPluginAction::triggered, this, &PicFlowView::flowView);
     addAction(ac);
 }
 
+/**
+ * 构建一个对话框
+ */
 Cathaysia::PicFlowView::ShareData PicFlowView::getShareData() {
     auto mainDialog = new QDialog;
     auto mainLayout = new Z::FlowLayout;
@@ -158,6 +170,7 @@ void PicFlowView::flowView() {
     std::binary_semaphore full(0);
 
     // 生产者线程
+    // 根据传入的 path 构造 Image 对象
     std::thread producer([&semMutex, &empty, &full, &imgBuf, &iface, &over, this]() {
         for(auto& item: iface->currentAlbumItems()) {
             // 查看是否需要中断线程
@@ -184,7 +197,7 @@ void PicFlowView::flowView() {
         over = true;
     });
     producer.detach();
-    // 先对数据检查一遍
+    // 先检查是否有有效数据
     bool hasVaildImg    = false;
     auto supportFormats = QImageReader::supportedImageFormats();
     for(auto& item: iface->currentAlbumItems()) {
@@ -195,7 +208,9 @@ void PicFlowView::flowView() {
         if(hasVaildImg) break;
     }
     if(!hasVaildImg) return;
-    // GUI 消费线程
+    /**
+     * 在主线程中将 QImage 添加到 GUI 中
+     */
     while(!over || imgBuf.size()) {
         QLabel* img = new QLabel();
         // 防止程序被中断后依然尝试获取资源

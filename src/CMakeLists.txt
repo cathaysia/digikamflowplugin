@@ -55,4 +55,5 @@ include(${DIGIKAM_PLUGIN_CONFIG})
 cmake_print_variables(DPluginGenericInstallPath)
 # 这里需要使用相对路径，否则 CPack 不识别
 install(TARGETS PicFlowView
-    LIBRARY DESTINATION "${DPluginGenericInstallPath}")
+    LIBRARY DESTINATION "${DPluginGenericInstallPath}"
+    )
