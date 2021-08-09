@@ -97,7 +97,7 @@ bool PicFlowView::eventFilter(QObject* watched, QEvent* event) {
         content->parentWidget()->resize(dialog->width(), content->innerHeight());
         return true;
     } else if(event->type() == QEvent::Close) {
-        // @TODO 这个关闭按钮是全局的，因此一个正在窗口关闭应该会导致所有窗口停止加载数据
+        // @TODO 这个关闭按钮是全局的，因此一个正在窗口关闭应该会导致所有生产线程停止加载数据
         stop_ = true;
         return true;
     } else if(event->type() == QEvent::Show) {
@@ -172,18 +172,19 @@ void PicFlowView::flowView() {
     auto* const iface = infoIface(sender());
     /**
      * @todo 1. 是否让多个窗口共用一个锁（现在不是）
-     *
+     * 在经过几次测试后，我发现要阻止消费者进入临界区几乎不可避免地会出现死锁
+     * 既然如此，就在队列末尾添加一个空对象用作判断，closeEvent 只会影响生产者
+     * 而我只需要保证消费者后于生产者退出即可
      */
     auto shareData  = getShareData();
     auto mainDialog = shareData.first;
     auto flowLayout = shareData.second;
     // 先显示
-    // flowLayout->parentWidget()->resize(800, flowLayout->innerHeight());
     mainDialog->resize(800, 600);
     mainDialog->show();
 
     std::list<QPixmap> imgBuf;
-    // 防止由于 imgBuf.length == 0 导致无法进入消费者
+    // 防止由于刚开始 imgBuf.length == 0 导致无法进入消费者
     std::atomic_bool over = false;
 
     std::binary_semaphore semMutex(1);
@@ -193,7 +194,7 @@ void PicFlowView::flowView() {
     auto task = ([&semMutex, &empty, &full, &imgBuf, &iface, &over, this](const QUrl& item) {
         QString imgPath = item.toString().replace("file://", "");
         if(stop_) {
-            qDebug() << "中断生产线程";
+            spdlog::debug("中断生产线程 1");
             over = true;
             return;
         }
@@ -206,23 +207,14 @@ void PicFlowView::flowView() {
         // 一个更小的图片缩放到 1920x1080 会导致占用内存变大吗？
         if(enable_scaled_) pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
         if(stop_) {
-            qDebug() << "中断生产线程";
-            over = true;
+
+            spdlog::debug("中断生产线程 2");
             return;
         }
+        // 在经过几次测试后，我发现在接受到 stop_ 后，生产线程总是在上面停止，而不会在下面
         if(!pix.isNull()) {
             empty.acquire();
-            if(stop_) {
-                qDebug() << "中断生产线程";
-                over = true;
-                return;
-            }
             semMutex.acquire();
-            if(stop_) {
-                qDebug() << "中断生产线程";
-                over = true;
-                return;
-            }
             imgBuf.push_back(pix);
 
             semMutex.release();
@@ -263,15 +255,10 @@ void PicFlowView::flowView() {
         // if(over) return;
         spdlog::debug("第 {} 次消费", counter);
         QLabel* img = new QLabel();
-        CHECK_CLOSE_FOR_BREAK("进程关闭")
         // 进入临界区
-        spdlog::debug("full.acquire()");
         full.acquire();
-        spdlog::debug("mutex.acquire()");
-        CHECK_CLOSE_FOR_BREAK("进程关闭")
         semMutex.acquire();
-        CHECK_CLOSE_FOR_BREAK("进程关闭")
-        if(imgBuf.front().isNull()){
+        if(imgBuf.front().isNull()) {
             spdlog::debug("检测到空对象退出");
             break;
         }
