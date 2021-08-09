@@ -30,10 +30,12 @@
 
 // 本地库
 #include <flowlayout.h>
+#include <qnamespace.h>
 
 namespace Cathaysia {
 
-PicFlowView::PicFlowView(QObject* const parent) : DPluginGeneric { parent } { }
+PicFlowView::PicFlowView(QObject* const parent) : DPluginGeneric { parent } {
+}
 
 PicFlowView::~PicFlowView() noexcept { }
 
@@ -123,6 +125,7 @@ void PicFlowView::setup(QObject* const parent) {
  */
 Cathaysia::PicFlowView::ShareData PicFlowView::getShareData() {
     auto mainDialog = new QDialog;
+    mainDialog->setAttribute(Qt::WA_DeleteOnClose, true);
     auto mainLayout = new Z::FlowLayout;
     mainLayout->setObjectName("FlowLayout");
 
