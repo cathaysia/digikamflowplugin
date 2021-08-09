@@ -204,6 +204,7 @@ void PicFlowView::flowView() {
         // 对图片进行缩放以改善内存占用情况
         // pix = pix.scaled(1344,756, Qt::KeepAspectRatio, Qt::FastTransformation).scaled(960,540,
         //         Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        // 一个更小的图片缩放到 1920x1080 会导致占用内存变大吗？
         if(enable_scaled_) pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
         if(!pix.isNull()) {
