@@ -42,10 +42,10 @@
 #include <spdlog/common.h>
 #include <spdlog/spdlog.h>
 
-#define CHECK_CLOSE_FOR_BREAK(msg)    \
-    if(stop_) {             \
-        spdlog::debug(msg); \
-        break;              \
+#define CHECK_CLOSE_FOR_BREAK(msg) \
+    if(stop_) {                    \
+        spdlog::debug(msg);        \
+        break;                     \
     }
 namespace Cathaysia {
 
@@ -187,17 +187,16 @@ void PicFlowView::flowView() {
     std::atomic_bool over = false;
 
     std::binary_semaphore semMutex(1);
-    std::binary_semaphore empty(15);    // 最多允许多少个生产线程进入临界区
+    std::binary_semaphore empty(10);    // 最多允许多少个生产线程进入临界区
     std::binary_semaphore full(0);
     // 用于执行任务的 Lambda
     auto task = ([&semMutex, &empty, &full, &imgBuf, &iface, &over, this](const QUrl& item) {
+        QString imgPath = item.toString().replace("file://", "");
         if(stop_) {
             qDebug() << "中断生产线程";
             over = true;
             return;
         }
-
-        QString imgPath = item.toString().replace("file://", "");
         spdlog::debug("producer: 加载 {} ", imgPath.toStdString());
         // QPixmap 存在隐式数据共享，因此无需智能指针
         QPixmap pix(imgPath);
@@ -206,11 +205,24 @@ void PicFlowView::flowView() {
         //         Qt::KeepAspectRatio, Qt::SmoothTransformation);
         // 一个更小的图片缩放到 1920x1080 会导致占用内存变大吗？
         if(enable_scaled_) pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
+        if(stop_) {
+            qDebug() << "中断生产线程";
+            over = true;
+            return;
+        }
         if(!pix.isNull()) {
             empty.acquire();
+            if(stop_) {
+                qDebug() << "中断生产线程";
+                over = true;
+                return;
+            }
             semMutex.acquire();
-
+            if(stop_) {
+                qDebug() << "中断生产线程";
+                over = true;
+                return;
+            }
             imgBuf.push_back(pix);
 
             semMutex.release();
@@ -223,6 +235,9 @@ void PicFlowView::flowView() {
         for(auto const& item: iface->currentAlbumItems()) localPool.start(std::bind(task, item));
         spdlog::debug("等待生产线程结束");
         localPool.waitForDone();
+        QPixmap nullpix;
+        imgBuf.push_back(nullpix);
+        full.release();
         spdlog::debug("生产进程完成");
         over = true;
     });
@@ -250,10 +265,16 @@ void PicFlowView::flowView() {
         QLabel* img = new QLabel();
         CHECK_CLOSE_FOR_BREAK("进程关闭")
         // 进入临界区
+        spdlog::debug("full.acquire()");
         full.acquire();
+        spdlog::debug("mutex.acquire()");
         CHECK_CLOSE_FOR_BREAK("进程关闭")
         semMutex.acquire();
         CHECK_CLOSE_FOR_BREAK("进程关闭")
+        if(imgBuf.front().isNull()){
+            spdlog::debug("检测到空对象退出");
+            break;
+        }
         img->setPixmap(imgBuf.front());
         imgBuf.pop_front();
 
