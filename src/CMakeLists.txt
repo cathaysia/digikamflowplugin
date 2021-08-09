@@ -3,6 +3,7 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5 NO_MODULE COMPONENTS Core Widgets Gui REQUIRED)
 find_package(DigikamCore CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 include(FindThreads)
 if(NOT ${Threads_FOUND})
   message(FATAL "线程库未发现")
@@ -32,6 +33,7 @@ target_include_directories(
   Qt5::Widgets
   Qt5::Gui
   Threads::Threads
+  spdlog::spdlog
 )
 
 target_link_libraries(
@@ -42,6 +44,7 @@ target_link_libraries(
   Qt5::Gui
   Threads::Threads
   FlowLayout
+  spdlog::spdlog
 )
 
 include(GNUInstallDirs)

@@ -33,14 +33,13 @@ public:
 
     void setup(QObject* const) override;
 
-
 signals:
     void imagePathResponse(const QString path);
     void widthChanged(qreal width);
 
 protected:
-    void flowView();
-    bool eventFilter(QObject* watched, QEvent* event) override;
+    void      flowView();
+    bool      eventFilter(QObject* watched, QEvent* event) override;
     ShareData getShareData();
 
 private:
@@ -48,8 +47,9 @@ private:
      * @brief 图片的参考宽度
      *
      */
-    qreal            width_ = 300;
-    std::atomic_bool stop_ = false;
+    qreal            width_         = 300;
+    std::atomic_bool stop_          = false;
+    bool             enable_scaled_ = true;
 };
 
 }    // namespace Cathaysia
