@@ -115,26 +115,37 @@ void PicFlowView::setup(QObject* const parent) {
     ac->setText("PicFlowView");
     // 添加菜单项
     // @TODO 这里有内存泄漏吗？
-    auto setting     = new QMenu;
+    auto setting = new QMenu;
+    // 参考宽度设置
     auto widthAction = setting->addAction(tr("设置参考宽度"));
     widthAction->setWhatsThis(tr("设置图片的参考宽度，图片的宽度会在更<b>倾向于</b>选择此宽度"));
-    auto scaledAction = setting->addAction(tr("缩放图片"));
-    scaledAction->setCheckable(true);
-    scaledAction->setChecked(true);
     // 添加设置
     connect(widthAction, &QAction::triggered, [this]() {
         bool ok = false;
-        auto result = QInputDialog::getDouble(nullptr, tr("输入参考宽度"), tr("参考宽度"), width_, 10, 9999, 1, &ok);
+        auto result = QInputDialog::getDouble(nullptr, tr("输入参考宽度"), tr("参考宽度"), width_, -1, 9999, 1, &ok);
         if(ok) {
             this->width_ = result;
             emit widthChanged(result);
         };
     });
+    // 缩放设置
+    auto scaledAction = setting->addAction(tr("缩放图片"));
+    scaledAction->setCheckable(true);
+    scaledAction->setChecked(true);
     connect(scaledAction, &QAction::triggered, [this](bool enabledIt) {
         this->enable_scaled_ = enabledIt;
     });
+    // spacing 设置
+    auto spac = setting->addAction("设置图片间的间隔");
+    connect(spac, &QAction::triggered, [this]() {
+        bool ok = false;
+        auto result = QInputDialog::getInt(nullptr, tr("输入参考宽度"), tr("参考宽度"), spacing_, 0, 9999, 1, &ok);
+        if(ok) {
+            this->spacing_ = result;
+            emit spacingChanged(result);
+        };
+    });
     ac->setMenu(setting);
-    // 参考宽度变化时自动更新布局
     connect(ac, &DPluginAction::triggered, this, &PicFlowView::flowView);
     addAction(ac);
 }
@@ -160,11 +171,13 @@ Cathaysia::PicFlowView::ShareData PicFlowView::getShareData() {
     box->setLayout(flowLayout);
 
     flowLayout->setObjectName("FlowLayout");
+    flowLayout->setSpacing(spacing_);
 
     //设置图片的参考宽度
     flowLayout->setWidgetWidth(width_);
     //
     connect(this, &PicFlowView::widthChanged, flowLayout, &Z::FlowLayout::setWidgetWidth);
+    connect(this, &PicFlowView::spacingChanged, flowLayout, &Z::FlowLayout::setSpacing);
     return ShareData(mainDialog, flowLayout);
 }
 

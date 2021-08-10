@@ -36,6 +36,7 @@ public:
 signals:
     void imagePathResponse(const QString path);
     void widthChanged(qreal width);
+    void spacingChanged(int spacing);
 
 protected:
     void      flowView();
@@ -50,6 +51,7 @@ private:
     qreal            width_         = 300;
     std::atomic_bool stop_          = false;
     bool             enable_scaled_ = true;
+    int              spacing_       = -1;
 };
 
 }    // namespace Cathaysia
