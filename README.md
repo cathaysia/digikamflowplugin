@@ -1,15 +1,24 @@
-太懒了，不想写了
+# 截图
 
-自己看效果吧
+![1.gif](screenshot/1.gif)
+![缩放.gif](./screenshot/缩放.gif)
+![节省内存.gif](./screenshot/节省内存.gif)
 
-![1](https://raw.githubusercontent.com/cathaysia/digikamflowplugin/6346c02e654218b75500378a73b646277e8f4319/1.png)
-![2](https://raw.githubusercontent.com/cathaysia/digikamflowplugin/6346c02e654218b75500378a73b646277e8f4319/2.png)
 
-# Compile
+# 构建
 
-1. Clone this project.
-2. Open this project in vscode.
-3. Press Ctrl + Shift + P, choose "Open Folder in Container"
-4. Run `cmake -B build && cmake --build build && sudo cpack -C build/CPackConfig.cmake`
+此项目依赖于以下组件（Fedora）：
 
-Then a package was generated in build/pack
+- spdlog-devel
+- digikam-devel
+- qt5-qtbase-devel
+- c++ 17
+- cmake
+
+要构建并安装，请执行以下指令：
+
+```bash
+cmake -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+sudo cmake --install build
+```
