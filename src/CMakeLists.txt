@@ -15,17 +15,14 @@ set_package_properties(
   DESCRIPTION "digiKam core library"
 )
 
-add_library(
-  PicFlowView MODULE
-  PicFlowView.cpp
-  PicFlowView.cpp
-)
+add_library(PicFlowView MODULE PicFlowView.cpp)
 
 set_target_properties(
   PicFlowView
   PROPERTIES PREFIX ""
   LINK_WHAT_YOU_USE ON
 )
+
 target_include_directories(
   PicFlowView PRIVATE
   Digikam::digikamcore
@@ -47,17 +44,16 @@ target_link_libraries(
   spdlog::spdlog
 )
 
-include(GNUInstallDirs)
-find_file(
-  DIGIKAM_PLUGIN_CONFIG DigikamPluginConfig.cmake
-  HINTS ${CMAKE_INSTALL_FULL_LIBDIR}/cmake/DigikamPlugin/
-  HINTS /usr/lib64/cmake/DigikamPlugin/
-  HINTS /usr/lib/cmake/DigikamPlugin/
-)
-include(${DIGIKAM_PLUGIN_CONFIG})
-cmake_print_variables(DPluginGenericInstallPath)
+# find_file(
+#   DIGIKAM_PLUGIN_CONFIG DigikamPluginConfig.cmake
+#   HINTS ${CMAKE_INSTALL_FULL_LIBDIR}/cmake/DigikamPlugin/
+#   HINTS /usr/lib64/cmake/DigikamPlugin/
+#   HINTS /usr/lib/cmake/DigikamPlugin/
+# )
+# include(${DIGIKAM_PLUGIN_CONFIG})
+# cmake_print_variables(DPluginGenericInstallPath)
 # 这里需要使用相对路径，否则 CPack 不识别
 install(
-  TARGETS PicFlowView
-  LIBRARY DESTINATION "${DPluginGenericInstallPath}"
+  # TARGETS PicFlowView DESTINATION "${DPluginGenericInstallPath}"
+  TARGETS PicFlowView DESTINATION "lib64/qt5/plugins/digikam/generic/"
 )
