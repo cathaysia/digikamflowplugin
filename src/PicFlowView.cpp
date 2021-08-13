@@ -204,41 +204,51 @@ void PicFlowView::flowView() {
     std::binary_semaphore empty(10);    // 最多允许多少个生产线程进入临界区
     std::binary_semaphore full(0);
     // 用于执行任务的 Lambda
-    auto task = ([&semMutex, &empty, &full, &imgBuf, &iface, &over, this](const QUrl& item) {
-        QString imgPath = item.toString().replace("file://", "");
-        if(stop_) {
-            spdlog::debug("中断生产线程 1");
-            over = true;
-            return;
-        }
-        spdlog::debug("producer: 加载 {} ", imgPath.toStdString());
-        // QPixmap 存在隐式数据共享，因此无需智能指针
-        QPixmap pix(imgPath);
-        // 对图片进行缩放以改善内存占用情况
-        // pix = pix.scaled(1344,756, Qt::KeepAspectRatio, Qt::FastTransformation).scaled(960,540,
-        //         Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        // 一个更小的图片缩放到 1920x1080 会导致占用内存变大吗？是的，会变大
-        if(enable_scaled_ && (pix.width() * pix.height() > 1928 * 1080))
-            pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        if(stop_) {
-            spdlog::debug("中断生产线程 2");
-            return;
-        }
-        // 在经过几次测试后，我发现在接受到 stop_ 后，生产线程总是在上面停止，而不会在下面
-        if(!pix.isNull()) {
-            empty.acquire();
-            semMutex.acquire();
-            imgBuf.push_back(pix);
+    using imgIt = QList<QUrl>::Iterator;
+    auto task   = ([&semMutex, &empty, &full, &imgBuf, &iface, &over, this](const imgIt& begin, const imgIt& end) {
+        std::for_each(begin, end, [&](auto const& item) {
+            QString imgPath = item.toString().replace("file://", "");
+            if(stop_) {
+                spdlog::debug("中断生产线程 1");
+                over = true;
+                return;
+            }
+            spdlog::debug("producer: 加载 {} ", imgPath.toStdString());
+            // QPixmap 存在隐式数据共享，因此无需智能指针
+            QPixmap pix(imgPath);
+            // 对图片进行缩放以改善内存占用情况
+            // pix = pix.scaled(1344,756, Qt::KeepAspectRatio, Qt::FastTransformation).scaled(960,540,
+            //         Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            // 一个更小的图片缩放到 1920x1080 会导致占用内存变大吗？是的，会变大
+            if(enable_scaled_ && (pix.width() * pix.height() > 1928 * 1080))
+                pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+            if(stop_) {
+                spdlog::debug("中断生产线程 2");
+                return;
+            }
+            // 在经过几次测试后，我发现在接受到 stop_ 后，生产线程总是在上面停止，而不会在下面
+            if(!pix.isNull()) {
+                empty.acquire();
+                semMutex.acquire();
+                imgBuf.push_back(pix);
 
-            semMutex.release();
-            full.release();
-        }
+                semMutex.release();
+                full.release();
+            }
+        });
     });
 
     // join 可以防止由于插件关闭导致的主窗口关闭
     std::jthread producer([&]() {
         QThreadPool localPool;
-        for(auto const& item: iface->currentAlbumItems()) localPool.start(std::bind(task, item));
+        auto        items = iface->currentAlbumItems();
+        imgIt       end   = items.begin();
+        size_t      step  = 3; // 每次传给任务多少个图片
+        while(end < items.end()) {
+            localPool.start(std::bind(task, end, end + step > items.end() ? items.end() : end + step));
+            end += step;
+        }
+        // for(auto const& item: iface->currentAlbumItems()) localPool.start(std::bind(task, item));
         spdlog::debug("等待生产线程结束");
         localPool.waitForDone();
         QPixmap nullpix;
