@@ -235,7 +235,8 @@ void PicFlowView::flowView() {
         }
     });
 
-    std::thread producer([&]() {
+    // join 可以防止由于插件关闭导致的主窗口关闭
+    std::jthread producer([&]() {
         QThreadPool localPool;
         for(auto const& item: iface->currentAlbumItems()) localPool.start(std::bind(task, item));
         spdlog::debug("等待生产线程结束");
@@ -288,8 +289,6 @@ void PicFlowView::flowView() {
         spdlog::debug("第 {} 次消费完成", counter);
         ++counter;
     }
-    // join 可以防止由于插件关闭导致的主窗口关闭
-    producer.join();
     spdlog::debug("图片加载完成");
 }
 }    // namespace Cathaysia
