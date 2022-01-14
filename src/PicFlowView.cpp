@@ -39,22 +39,9 @@
 #include <qnamespace.h>
 #include <qpixmap.h>
 
-#include <spdlog/common.h>
-#include <spdlog/spdlog.h>
-
-#define CHECK_CLOSE_FOR_BREAK(msg) \
-    if(stop_) {                    \
-        spdlog::debug(msg);        \
-        break;                     \
-    }
 namespace Cathaysia {
 
-PicFlowView::PicFlowView(QObject* const parent) : DPluginGeneric { parent } {
-    spdlog::set_pattern("%^%l%$: %v");
-#ifdef QT_DEBUG
-    spdlog::set_level(spdlog::level::debug);
-#endif
-}
+PicFlowView::PicFlowView(QObject* const parent) : DPluginGeneric { parent } { }
 
 PicFlowView::~PicFlowView() noexcept { }
 
@@ -82,7 +69,7 @@ QString PicFlowView::details() const {
 QList<Digikam::DPluginAuthor> PicFlowView::authors() const {
     return QList<DPluginAuthor>()
             << DPluginAuthor(QString::fromUtf8("Cathaysia"),
-                             QString::fromUtf8("319513897@outlook.com"),
+                             QString::fromUtf8("DragonBillow@outlook.com"),
                              QString::fromUtf8("(c) 2021"))
             ;
 }
@@ -209,11 +196,11 @@ void PicFlowView::flowView() {
         std::for_each(begin, end, [&](auto const& item) {
             QString imgPath = item.toString().replace("file://", "");
             if(stop_) {
-                spdlog::debug("中断生产线程 1");
+                qDebug() << "中断生产线程 1";
                 over = true;
                 return;
             }
-            spdlog::debug("producer: 加载 {} ", imgPath.toStdString());
+            qDebug() << "producer: 加载 " << imgPath;
             // QPixmap 存在隐式数据共享，因此无需智能指针
             QPixmap pix(imgPath);
             // 对图片进行缩放以改善内存占用情况
@@ -223,7 +210,7 @@ void PicFlowView::flowView() {
             if(enable_scaled_ && (pix.width() * pix.height() > 1928 * 1080))
                 pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             if(stop_) {
-                spdlog::debug("中断生产线程 2");
+                qDebug() << "中断生产线程 2";
                 return;
             }
             // 在经过几次测试后，我发现在接受到 stop_ 后，生产线程总是在上面停止，而不会在下面
@@ -235,7 +222,7 @@ void PicFlowView::flowView() {
                 semMutex.release();
                 full.release();
             }
-        });
+          });
     });
 
     // join 可以防止由于插件关闭导致的主窗口关闭
@@ -243,18 +230,18 @@ void PicFlowView::flowView() {
         QThreadPool localPool;
         auto        items = iface->currentAlbumItems();
         imgIt       end   = items.begin();
-        size_t      step  = 3; // 每次传给任务多少个图片
+        size_t      step  = 3;    // 每次传给任务多少个图片
         while(end < items.end()) {
             localPool.start(std::bind(task, end, end + step > items.end() ? items.end() : end + step));
             end += step;
         }
         // for(auto const& item: iface->currentAlbumItems()) localPool.start(std::bind(task, item));
-        spdlog::debug("等待生产线程结束");
+        qDebug() << "等待生产线程结束";
         localPool.waitForDone();
         QPixmap nullpix;
         imgBuf.push_back(nullpix);
         full.release();
-        spdlog::debug("生产进程完成");
+        qDebug() << "生产进程完成";
         over = true;
     });
 
@@ -268,7 +255,7 @@ void PicFlowView::flowView() {
         }
     }
     if(!hasVaildImg) {
-        spdlog::info("没有有效数据，退出");
+        qInfo() << "没有有效数据，退出";
         this->stop_ = true;
         return;
     }
@@ -277,13 +264,13 @@ void PicFlowView::flowView() {
     while(!over || imgBuf.size()) {
         // 防止程序被中断后依然尝试获取资源
         // if(over) return;
-        spdlog::debug("第 {} 次消费", counter);
+        qDebug() << "第" << counter << " 次消费";
         QLabel* img = new QLabel();
         // 进入临界区
         full.acquire();
         semMutex.acquire();
         if(imgBuf.front().isNull()) {
-            spdlog::debug("检测到空对象退出");
+            qDebug() << "检测到空对象退出";
             break;
         }
         img->setPixmap(imgBuf.front());
@@ -296,9 +283,9 @@ void PicFlowView::flowView() {
         flowLayout->addWidget(img);
         // 防止界面卡顿
         qApp->processEvents();
-        spdlog::debug("第 {} 次消费完成", counter);
+        qDebug() << "第 " << counter << " 次消费完成";
         ++counter;
     }
-    spdlog::debug("图片加载完成");
+    qDebug() << "图片加载完成";
 }
 }    // namespace Cathaysia
