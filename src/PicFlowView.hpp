@@ -1,7 +1,6 @@
 #ifndef DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN
 #define DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN
 
-#include <digikam/coredbaccess.h>
 #include <digikam/dplugingeneric.h>
 
 #include <flowlayout.h>
