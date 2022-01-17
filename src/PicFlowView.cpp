@@ -84,7 +84,7 @@ bool PicFlowView::eventFilter(QObject* watched, QEvent* event) {
         content->parentWidget()->resize(dialog->width(), content->innerHeight());
         return true;
     } else if(event->type() == QEvent::Close) {
-        // @TODO 这个关闭按钮是全局的，因此一个正在窗口关闭应该会导致所有生产线程停止加载数据
+        // TODO: 这个关闭按钮是全局的，因此一个正在窗口关闭应该会导致所有生产线程停止加载数据
         stop_ = true;
         return true;
     } else if(event->type() == QEvent::Show) {
@@ -112,7 +112,7 @@ void PicFlowView::setup(QObject* const parent) {
         };
     });
     widthAction->setWhatsThis(tr("设置图片的参考宽度，图片的宽度会在更<b>倾向于</b>选择此宽度"));
-    // 添加设置
+    // 添加 action 来打开此窗口
     auto openthis = setting->addAction(tr("Open view"), this, &PicFlowView::flowView);
     // 缩放设置
     auto scaledAction = setting->addAction(tr("缩放图片"), [this](bool enableIt) {
@@ -169,7 +169,7 @@ Cathaysia::PicFlowView::ShareData PicFlowView::getShareData() {
 void PicFlowView::flowView() {
     /**
      * TODO: 1. 是否让多个窗口共用一个锁（现在不是）
-     * 在经过几次测试后，我发现要阻止消费者进入临界区几乎不可避免地会出现死锁
+     * INFO: 在经过几次测试后，我发现要阻止消费者进入临界区几乎不可避免地会出现死锁
      * 既然如此，就在队列末尾添加一个空对象用作判断，closeEvent 只会影响生产者
      * 而我只需要保证消费者后于生产者退出即可
      */
@@ -260,7 +260,6 @@ void PicFlowView::flowView() {
     size_t counter = 0;
     while(!over || imgBuf.size()) {
         // 防止程序被中断后依然尝试获取资源
-        // if(over) return;
         qDebug() << "第" << counter << " 次消费";
         QLabel* img = new QLabel();
         // 进入临界区
