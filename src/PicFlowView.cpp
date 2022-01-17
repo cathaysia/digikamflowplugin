@@ -104,10 +104,7 @@ void PicFlowView::setup(QObject* const parent) {
     // @TODO 这里有内存泄漏吗？
     auto setting = new QMenu;
     // 参考宽度设置
-    auto widthAction = setting->addAction(tr("设置参考宽度"));
-    widthAction->setWhatsThis(tr("设置图片的参考宽度，图片的宽度会在更<b>倾向于</b>选择此宽度"));
-    // 添加设置
-    connect(widthAction, &QAction::triggered, [this]() {
+    auto widthAction = setting->addAction(tr("设置参考宽度"), [this]() {
         bool ok = false;
         auto result = QInputDialog::getDouble(nullptr, tr("输入参考宽度"), tr("参考宽度"), width_, -1, 9999, 1, &ok);
         if(ok) {
@@ -115,16 +112,16 @@ void PicFlowView::setup(QObject* const parent) {
             emit widthChanged(result);
         };
     });
+    widthAction->setWhatsThis(tr("设置图片的参考宽度，图片的宽度会在更<b>倾向于</b>选择此宽度"));
+    // 添加设置
     // 缩放设置
-    auto scaledAction = setting->addAction(tr("缩放图片"));
+    auto scaledAction = setting->addAction(tr("缩放图片"), [this](bool enableIt) {
+        this->enable_scaled_ = enableIt;
+    });
     scaledAction->setCheckable(true);
     scaledAction->setChecked(true);
-    connect(scaledAction, &QAction::triggered, [this](bool enabledIt) {
-        this->enable_scaled_ = enabledIt;
-    });
     // spacing 设置
-    auto spac = setting->addAction("设置图片间的间隔");
-    connect(spac, &QAction::triggered, [this]() {
+    auto spac = setting->addAction("设置图片间的间隔", [this]() {
         bool ok = false;
         auto result = QInputDialog::getInt(nullptr, tr("输入参考宽度"), tr("参考宽度"), spacing_, 0, 9999, 1, &ok);
         if(ok) {
