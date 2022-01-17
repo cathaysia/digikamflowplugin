@@ -101,7 +101,6 @@ void PicFlowView::setup(QObject* const parent) {
     ac->setActionCategory(DPluginAction::ActionCategory::GenericView);
     ac->setText("PicFlowView");
     // 添加菜单项
-    // @TODO 这里有内存泄漏吗？
     auto setting = new QMenu;
     // 参考宽度设置
     auto widthAction = setting->addAction(tr("设置参考宽度"), [this]() {
@@ -114,6 +113,7 @@ void PicFlowView::setup(QObject* const parent) {
     });
     widthAction->setWhatsThis(tr("设置图片的参考宽度，图片的宽度会在更<b>倾向于</b>选择此宽度"));
     // 添加设置
+    auto openthis = setting->addAction(tr("Open view"), this, &PicFlowView::flowView);
     // 缩放设置
     auto scaledAction = setting->addAction(tr("缩放图片"), [this](bool enableIt) {
         this->enable_scaled_ = enableIt;
@@ -132,6 +132,7 @@ void PicFlowView::setup(QObject* const parent) {
     ac->setMenu(setting);
     connect(ac, &DPluginAction::triggered, this, &PicFlowView::flowView);
     addAction(ac);
+    iface = infoIface(ac);
 }
 
 // 构建一个对话框
@@ -166,9 +167,8 @@ Cathaysia::PicFlowView::ShareData PicFlowView::getShareData() {
 }
 
 void PicFlowView::flowView() {
-    auto* const iface = infoIface(sender());
     /**
-     * @todo 1. 是否让多个窗口共用一个锁（现在不是）
+     * TODO: 1. 是否让多个窗口共用一个锁（现在不是）
      * 在经过几次测试后，我发现要阻止消费者进入临界区几乎不可避免地会出现死锁
      * 既然如此，就在队列末尾添加一个空对象用作判断，closeEvent 只会影响生产者
      * 而我只需要保证消费者后于生产者退出即可
@@ -189,7 +189,7 @@ void PicFlowView::flowView() {
     std::binary_semaphore full(0);
     // 用于执行任务的 Lambda
     using imgIt = QList<QUrl>::Iterator;
-    auto task   = ([&semMutex, &empty, &full, &imgBuf, &iface, &over, this](const imgIt& begin, const imgIt& end) {
+    auto task   = ([&semMutex, &empty, &full, &imgBuf, &over, this](const imgIt& begin, const imgIt& end) {
         std::for_each(begin, end, [&](auto const& item) {
             QString imgPath = item.toString().replace("file://", "");
             if(stop_) {
