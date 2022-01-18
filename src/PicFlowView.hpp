@@ -43,10 +43,6 @@ protected:
     ShareData getShareData();
 
 private:
-    /**
-     * @brief 图片的参考宽度
-     *
-     */
     qreal                    width_         = 300;
     std::atomic_bool         stop_          = false;
     bool                     enable_scaled_ = true;

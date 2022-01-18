@@ -1,13 +1,13 @@
 #include "PicFlowView.hpp"
 
-// 标准库
+// std library
 #include <chrono>
 #include <cstddef>
 #include <exception>
 #include <functional>
 #include <semaphore>
 
-// Qt 库
+// Qt
 #include <QApplication>
 #include <QDialog>
 #include <QDir>
@@ -27,13 +27,7 @@
 #include <QThreadPool>
 #include <QTranslator>
 
-// digikam 库
-#include <digikam/coredbaccess.h>
-#include <digikam/dbengineaction.h>
-#include <digikam/dinfointerface.h>
-#include <digikam/dmessagebox.h>
-
-// 本地库
+// loacl library
 #include <flowlayout.h>
 #include <qaction.h>
 #include <qnamespace.h>
@@ -75,7 +69,7 @@ QList<Digikam::DPluginAuthor> PicFlowView::authors() const {
 }
 // clang-format on
 
-// 窗口大小发生变化时自动更新布局
+// Update layout after the size of dialog has changed
 bool PicFlowView::eventFilter(QObject* watched, QEvent* event) {
     auto dialog = qobject_cast<QDialog*>(watched);
     if(!dialog) return false;
@@ -84,7 +78,8 @@ bool PicFlowView::eventFilter(QObject* watched, QEvent* event) {
         content->parentWidget()->resize(dialog->width(), content->innerHeight());
         return true;
     } else if(event->type() == QEvent::Close) {
-        // TODO: 这个关闭按钮是全局的，因此一个正在窗口关闭应该会导致所有生产线程停止加载数据
+        // INFO: This button is global, so if close a opend window maybe cause all producer stop load
+        // data
         stop_ = true;
         return true;
     } else if(event->type() == QEvent::Show) {
@@ -93,37 +88,38 @@ bool PicFlowView::eventFilter(QObject* watched, QEvent* event) {
     }
     return false;
 }
-// 插件的基本设置
+// Basic setting to plugin
 void PicFlowView::setup(QObject* const parent) {
     DPluginAction* const ac = new DPluginAction(parent);
     ac->setIcon(icon());
     ac->setObjectName(QLatin1String("PiclLowView"));
     ac->setActionCategory(DPluginAction::ActionCategory::GenericView);
     ac->setText("PicFlowView");
-    // 添加菜单项
+    // add menu items
     auto setting = new QMenu;
-    // 参考宽度设置
-    auto widthAction = setting->addAction(tr("设置参考宽度"), [this]() {
-        bool ok = false;
-        auto result = QInputDialog::getDouble(nullptr, tr("输入参考宽度"), tr("参考宽度"), width_, -1, 9999, 1, &ok);
+    // ReferenceWidth setting
+    auto widthAction = setting->addAction(tr("Set reference width"), [this]() {
+        bool ok     = false;
+        auto result = QInputDialog::getDouble(
+            nullptr, tr("Input reference width"), tr("Reference Width"), width_, -1, 9999, 1, &ok);
         if(ok) {
             this->width_ = result;
             emit widthChanged(result);
         };
     });
-    widthAction->setWhatsThis(tr("设置图片的参考宽度，图片的宽度会在更<b>倾向于</b>选择此宽度"));
-    // 添加 action 来打开此窗口
+    widthAction->setWhatsThis(tr("Set refenence width, picture will use it as it's width <b>as much as possible</b>."));
+    // add this action for open plugin
     auto openthis = setting->addAction(tr("Open view"), this, &PicFlowView::flowView);
-    // 缩放设置
-    auto scaledAction = setting->addAction(tr("缩放图片"), [this](bool enableIt) {
+    // scale
+    auto scaledAction = setting->addAction(tr("Scale Picture"), [this](bool enableIt) {
         this->enable_scaled_ = enableIt;
     });
     scaledAction->setCheckable(true);
     scaledAction->setChecked(true);
-    // spacing 设置
-    auto spac = setting->addAction("设置图片间的间隔", [this]() {
-        bool ok = false;
-        auto result = QInputDialog::getInt(nullptr, tr("输入参考宽度"), tr("参考宽度"), spacing_, 0, 9999, 1, &ok);
+    // spacing
+    auto spac = setting->addAction("Spacing", [this]() {
+        bool ok     = false;
+        auto result = QInputDialog::getInt(nullptr, tr("Input spacing"), tr("Spacing"), spacing_, 0, 9999, 1, &ok);
         if(ok) {
             this->spacing_ = result;
             emit spacingChanged(result);
@@ -135,16 +131,16 @@ void PicFlowView::setup(QObject* const parent) {
     iface = infoIface(ac);
 }
 
-// 构建一个对话框
+// Build a dialog
 Cathaysia::PicFlowView::ShareData PicFlowView::getShareData() {
-    // 从外到内依次是
+    // From outside to innner be:
     // mainDialog -> dialogLayout -> scrollWidget -> box -> flowLayout
     auto mainDialog   = new QDialog;
     auto dialogLayout = new QHBoxLayout(mainDialog);
     auto scrollWidget = new QScrollArea(mainDialog);
     auto box          = new QWidget(mainDialog);
     auto flowLayout   = new Z::FlowLayout(box);
-    // 关闭窗口时释放内存
+    // Destory after close dialog
     mainDialog->setAttribute(Qt::WA_DeleteOnClose, true);
     mainDialog->installEventFilter(this);
 
@@ -158,7 +154,7 @@ Cathaysia::PicFlowView::ShareData PicFlowView::getShareData() {
     flowLayout->setObjectName("FlowLayout");
     flowLayout->setSpacing(spacing_);
 
-    //设置图片的参考宽度
+    // Set ReferenceWidth
     flowLayout->setWidgetWidth(width_);
     //
     connect(this, &PicFlowView::widthChanged, flowLayout, &Z::FlowLayout::setWidgetWidth);
@@ -168,48 +164,46 @@ Cathaysia::PicFlowView::ShareData PicFlowView::getShareData() {
 
 void PicFlowView::flowView() {
     /**
-     * TODO: 1. 是否让多个窗口共用一个锁（现在不是）
-     * INFO: 在经过几次测试后，我发现要阻止消费者进入临界区几乎不可避免地会出现死锁
-     * 既然如此，就在队列末尾添加一个空对象用作判断，closeEvent 只会影响生产者
-     * 而我只需要保证消费者后于生产者退出即可
+     * TODO: 1. Whether share mutex between multi dialog?
+     * INFO: After some testing, I find it's not possible to provide customer come in critical
+     * section by flags. So I push a empty QImage at the end of img queue. See it as a flag that customer should exit.
      */
     auto shareData  = getShareData();
     auto mainDialog = shareData.first;
     auto flowLayout = shareData.second;
-    // 先显示
+    // Show earlier
     mainDialog->resize(800, 600);
     mainDialog->show();
 
     QQueue<QPixmap> imgBuf;
-    // 防止由于刚开始 imgBuf.length == 0 导致无法进入消费者
 
     std::binary_semaphore semMutex(1);
-    std::binary_semaphore empty(10);    // 最多允许多少个生产线程进入临界区
+    std::binary_semaphore empty(10);
     std::binary_semaphore full(0);
-    // 用于执行任务的 Lambda
+    // Lambda for execute task
     using imgIt = QList<QUrl>::Iterator;
     auto task   = ([&](const imgIt& begin, const imgIt& end) {
         std::for_each(begin, end, [&](auto const& item) {
             QString imgPath = item.toString().replace("file://", "");
             if(stop_) {
-                qDebug() << "中断生产线程 1";
+                qDebug() << "terminate producer thread 1";
                 return;
             }
-            qDebug() << "producer: 加载 " << imgPath;
-            // QPixmap 存在隐式数据共享，因此无需智能指针
+            qDebug() << "producer: load " << imgPath;
+            // QPixmap has implicit data share, so smart ptr is not need here.
             QPixmap pix(imgPath);
             if(pix.isNull()) return;
-            // 对图片进行缩放以改善内存占用情况
+            // Scale picture for reduce memory footprint
             // pix = pix.scaled(1344,756, Qt::KeepAspectRatio, Qt::FastTransformation).scaled(960,540,
             //         Qt::KeepAspectRatio, Qt::SmoothTransformation);
-            // 一个更小的图片缩放到 1920x1080 会导致占用内存变大吗？是的，会变大
+            // a smeller picture scale to 1920x1080 will need more memory
             if(enable_scaled_ && (pix.width() * pix.height() > 1928 * 1080))
                 pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
             if(stop_) {
-                qDebug() << "中断生产线程 2";
+                qDebug() << "terminate producer thread 2";
                 return;
             }
-            // 在经过几次测试后，我发现在接受到 stop_ 后，生产线程总是在上面停止，而不会在下面
+            // After stop_ set to true, producer thread always stop at above.
             empty.acquire();
             semMutex.acquire();
             imgBuf.enqueue(pix);
@@ -219,26 +213,26 @@ void PicFlowView::flowView() {
           });
     });
 
-    // join 可以防止由于插件关闭导致的主窗口关闭
+    // join can prevent digikam's close that cause by plugin close.
     std::jthread producer([&]() {
         QThreadPool localPool;
         auto        items = iface->currentAlbumItems();
         imgIt       end   = items.begin();
-        size_t      step  = 3;    // 每次传给任务多少个图片
+        size_t      step  = 3;    // per task thread can deal 3 pictures.
         while(end < items.end()) {
             localPool.start(std::bind(task, end, end + step > items.end() ? items.end() : end + step));
             end += step;
         }
         // for(auto const& item: iface->currentAlbumItems()) localPool.start(std::bind(task, item));
-        qDebug() << "等待生产线程结束";
+        qDebug() << "waitting for producer stop";
         localPool.waitForDone();
         QPixmap nullpix;
         imgBuf.push_back(nullpix);
         full.release();
-        qDebug() << "生产进程完成";
+        qDebug() << "producer thread complete";
     });
 
-    // 先检查是否有有效数据
+    // check for valid data
     bool hasVaildImg    = false;
     auto supportFormats = QImageReader::supportedImageFormats();
     for(auto& item: iface->currentAlbumItems()) {
@@ -248,38 +242,37 @@ void PicFlowView::flowView() {
         }
     }
     if(!hasVaildImg) {
-        qInfo() << "没有有效数据，退出";
+        qInfo() << "has no valid data, exit!";
         this->stop_ = true;
         return;
     }
-    // 在主线程中将 QImage 添加到 GUI 中
+    // Add QImage to GUI in main thread
     size_t  counter = 0;
     QPixmap tmp;
     while(true) {
-        // 防止程序被中断后依然尝试获取资源
-        qDebug() << "第" << counter << " 次消费";
+        qDebug() << "Consumption for the " << counter << " time";
         QLabel* img = new QLabel();
-        // 进入临界区
+        // Enter critical section
         full.acquire();
         semMutex.acquire();
         tmp = imgBuf.dequeue();
         semMutex.release();
         empty.release();
+        // Leave critical section
 
         if(tmp.isNull()) {
-            qDebug() << "检测到空对象退出";
+            qDebug() << "Find empty object, exit";
             break;
         }
         img->setPixmap(tmp);
 
-        // 离开临界区
         img->setScaledContents(true);
         flowLayout->addWidget(img);
-        // 防止界面卡顿
+        // avoid dialog lag
         qApp->processEvents();
-        qDebug() << "第 " << counter << " 次消费完成";
+        qDebug() << "Consumption for the " << counter << " time completeed.";
         ++counter;
     }
-    qDebug() << "图片加载完成";
+    qDebug() << "Pictures load completed";
 }
 }    // namespace Cathaysia
