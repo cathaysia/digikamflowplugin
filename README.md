@@ -5,9 +5,9 @@ This is a Digikam plugin for add more beautiful flow layout.
 
 # Screenshot
 
-[628863199077](screenshot/1.gif)]
-[1628863199079](./screenshot/缩放.gif)]
-[1628863199080](./screenshot/节省内存.gif)]
+![628863199077](screenshot/1.gif)
+![1628863199079](./screenshot/缩放.gif)
+![1628863199080](./screenshot/节省内存.gif)
 
 # Build
 
