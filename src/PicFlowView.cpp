@@ -5,7 +5,6 @@
 #include <cstddef>
 #include <exception>
 #include <functional>
-#include <list>
 #include <semaphore>
 
 // Qt 库
@@ -21,6 +20,7 @@
 #include <QList>
 #include <QMenu>
 #include <QPointer>
+#include <QQueue>
 #include <QRunnable>
 #include <QScrollArea>
 #include <QThread>
@@ -180,7 +180,7 @@ void PicFlowView::flowView() {
     mainDialog->resize(800, 600);
     mainDialog->show();
 
-    std::list<QPixmap> imgBuf;
+    QQueue<QPixmap> imgBuf;
     // 防止由于刚开始 imgBuf.length == 0 导致无法进入消费者
 
     std::binary_semaphore semMutex(1);
@@ -212,7 +212,7 @@ void PicFlowView::flowView() {
             // 在经过几次测试后，我发现在接受到 stop_ 后，生产线程总是在上面停止，而不会在下面
             empty.acquire();
             semMutex.acquire();
-            imgBuf.push_back(pix);
+            imgBuf.enqueue(pix);
 
             semMutex.release();
             full.release();
@@ -253,7 +253,8 @@ void PicFlowView::flowView() {
         return;
     }
     // 在主线程中将 QImage 添加到 GUI 中
-    size_t counter = 0;
+    size_t  counter = 0;
+    QPixmap tmp;
     while(true) {
         // 防止程序被中断后依然尝试获取资源
         qDebug() << "第" << counter << " 次消费";
@@ -261,15 +262,16 @@ void PicFlowView::flowView() {
         // 进入临界区
         full.acquire();
         semMutex.acquire();
-        if(imgBuf.front().isNull()) {
+        tmp = imgBuf.dequeue();
+        semMutex.release();
+        empty.release();
+
+        if(tmp.isNull()) {
             qDebug() << "检测到空对象退出";
             break;
         }
-        img->setPixmap(imgBuf.front());
-        imgBuf.pop_front();
+        img->setPixmap(tmp);
 
-        semMutex.release();
-        empty.release();
         // 离开临界区
         img->setScaledContents(true);
         flowLayout->addWidget(img);
