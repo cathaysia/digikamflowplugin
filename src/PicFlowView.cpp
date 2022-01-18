@@ -1,12 +1,5 @@
 #include "PicFlowView.hpp"
 
-// std library
-#include <chrono>
-#include <cstddef>
-#include <exception>
-#include <functional>
-#include <semaphore>
-
 // Qt
 #include <QApplication>
 #include <QDialog>
@@ -17,21 +10,14 @@
 #include <QImageReader>
 #include <QInputDialog>
 #include <QLabel>
-#include <QList>
 #include <QMenu>
 #include <QPointer>
 #include <QQueue>
-#include <QRunnable>
 #include <QScrollArea>
+#include <QSemaphore>
 #include <QThread>
 #include <QThreadPool>
 #include <QTranslator>
-
-// loacl library
-#include <flowlayout.h>
-#include <qaction.h>
-#include <qnamespace.h>
-#include <qpixmap.h>
 
 namespace Cathaysia {
 
@@ -49,6 +35,7 @@ QString PicFlowView::iid() const {
 
 QIcon PicFlowView::icon() const {
     return QIcon::fromTheme(QLatin1String("digikam"));
+#include <functional>
 }
 
 QString PicFlowView::description() const {
@@ -177,9 +164,9 @@ void PicFlowView::flowView() {
 
     QQueue<QPixmap> imgBuf;
 
-    std::binary_semaphore semMutex(1);
-    std::binary_semaphore empty(10);
-    std::binary_semaphore full(0);
+    QSemaphore semMutex(1);
+    QSemaphore empty(10);
+    QSemaphore full(0);
     // Lambda for execute task
     using imgIt = QList<QUrl>::Iterator;
     auto task   = ([&](const imgIt& begin, const imgIt& end) {

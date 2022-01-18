@@ -4,7 +4,6 @@
 #include <digikam/dplugingeneric.h>
 
 #include <flowlayout.h>
-#include <semaphore>
 
 #include <utility>
 
