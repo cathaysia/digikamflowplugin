@@ -182,24 +182,23 @@ void PicFlowView::flowView() {
 
     std::list<QPixmap> imgBuf;
     // 防止由于刚开始 imgBuf.length == 0 导致无法进入消费者
-    std::atomic_bool over = false;
 
     std::binary_semaphore semMutex(1);
     std::binary_semaphore empty(10);    // 最多允许多少个生产线程进入临界区
     std::binary_semaphore full(0);
     // 用于执行任务的 Lambda
     using imgIt = QList<QUrl>::Iterator;
-    auto task   = ([&semMutex, &empty, &full, &imgBuf, &over, this](const imgIt& begin, const imgIt& end) {
+    auto task   = ([&](const imgIt& begin, const imgIt& end) {
         std::for_each(begin, end, [&](auto const& item) {
             QString imgPath = item.toString().replace("file://", "");
             if(stop_) {
                 qDebug() << "中断生产线程 1";
-                over = true;
                 return;
             }
             qDebug() << "producer: 加载 " << imgPath;
             // QPixmap 存在隐式数据共享，因此无需智能指针
             QPixmap pix(imgPath);
+            if(pix.isNull()) return;
             // 对图片进行缩放以改善内存占用情况
             // pix = pix.scaled(1344,756, Qt::KeepAspectRatio, Qt::FastTransformation).scaled(960,540,
             //         Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -211,14 +210,12 @@ void PicFlowView::flowView() {
                 return;
             }
             // 在经过几次测试后，我发现在接受到 stop_ 后，生产线程总是在上面停止，而不会在下面
-            if(!pix.isNull()) {
-                empty.acquire();
-                semMutex.acquire();
-                imgBuf.push_back(pix);
+            empty.acquire();
+            semMutex.acquire();
+            imgBuf.push_back(pix);
 
-                semMutex.release();
-                full.release();
-            }
+            semMutex.release();
+            full.release();
           });
     });
 
@@ -239,7 +236,6 @@ void PicFlowView::flowView() {
         imgBuf.push_back(nullpix);
         full.release();
         qDebug() << "生产进程完成";
-        over = true;
     });
 
     // 先检查是否有有效数据
@@ -258,7 +254,7 @@ void PicFlowView::flowView() {
     }
     // 在主线程中将 QImage 添加到 GUI 中
     size_t counter = 0;
-    while(!over || imgBuf.size()) {
+    while(true) {
         // 防止程序被中断后依然尝试获取资源
         qDebug() << "第" << counter << " 次消费";
         QLabel* img = new QLabel();
