@@ -28,3 +28,13 @@ private:
     QWidget*       box_            = nullptr;
     Z::FlowLayout* layout_         = nullptr;
 };
+
+class CachedLoadThread : public ManagedLoadSaveThread {
+    Q_OBJECT
+public:
+    CachedLoadThread(QObject* parent = nullptr) : ManagedLoadSaveThread(parent) { }
+    ~CachedLoadThread() { }
+    void load(const LoadingDescription& description) {
+        ManagedLoadSaveThread::load(description, LoadingModeShared, m_loadingPolicy);
+    }
+};

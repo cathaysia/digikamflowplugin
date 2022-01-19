@@ -108,9 +108,11 @@ void PicFlowView::flowView() {
      * 3. drag data by signal: ManagedLoadSaveThread::signalImageLoaded(LoadingDescription, DImg)
      */
 
-    ManagedLoadSaveThread* t = new ManagedLoadSaveThread(dialog);
+    CachedLoadThread* t = new CachedLoadThread(dialog);
+    // ManagedLoadSaveThread* t = new ManagedLoadSaveThread(dialog);
     connect(t, &ManagedLoadSaveThread::signalImageLoaded, dialog, &PicDialog::loadPic);
     connect(dialog, &PicDialog::close, t, &ManagedLoadSaveThread::stopAllTasks);
+
     auto items = iface->currentAlbumItems();
     for(auto& it: items) t->load(dialog->createLoadingDescription(it.toString().replace("file://", "")));
 }

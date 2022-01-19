@@ -58,7 +58,7 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
 
 LoadingDescription PicDialog::createLoadingDescription(const QString& filePath) {
 
-    LoadingDescription description(filePath);
+    LoadingDescription description(filePath, PreviewSettings::fastPreview(), 0);
 
     if(DImg::fileFormat(filePath) == DImg::RAW) {
         description.rawDecodingSettings.optimizeTimeLoading();
