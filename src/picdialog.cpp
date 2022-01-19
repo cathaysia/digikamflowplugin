@@ -37,7 +37,8 @@ void PicDialog::setSpacing(int spacing) {
 void PicDialog::loadPic(const LoadingDescription&, const DImg& dimg) {
     auto* lbl = new QLabel;
     auto  pix = dimg.convertToPixmap();
-    pix.scaledToWidth(referenceWidth_);
+    if(pix.width() * pix.height() > 1920 * 1080)
+        pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
     lbl->setPixmap(pix);
     layout_->addWidget(lbl);
 }
