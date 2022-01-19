@@ -110,6 +110,7 @@ void PicFlowView::flowView() {
 
     ManagedLoadSaveThread* t = new ManagedLoadSaveThread(dialog);
     connect(t, &ManagedLoadSaveThread::signalImageLoaded, dialog, &PicDialog::loadPic);
+    connect(dialog, &PicDialog::close, t, &ManagedLoadSaveThread::stopAllTasks);
     auto items = iface->currentAlbumItems();
     for(auto& it: items) t->load(dialog->createLoadingDescription(it.toString().replace("file://", "")));
 }
