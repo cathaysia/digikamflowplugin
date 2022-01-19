@@ -14,7 +14,12 @@ set_package_properties(
   DESCRIPTION "digiKam core library"
 )
 
-add_library(PicFlowView MODULE PicFlowView.cpp)
+add_library(
+  PicFlowView
+  MODULE
+  PicFlowView.cpp PicDialog.cpp
+  PicFlowView.hpp PicDialog.hpp
+)
 
 set_target_properties(
   PicFlowView

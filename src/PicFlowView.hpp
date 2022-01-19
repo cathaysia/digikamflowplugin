@@ -2,6 +2,7 @@
 #define DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN
 
 #include <digikam/dplugingeneric.h>
+#include <digikam/loadingdescription.h>
 
 #include <flowlayout.h>
 
@@ -32,21 +33,14 @@ public:
     void setup(QObject* const) override;
 
 signals:
-    void imagePathResponse(const QString path);
     void widthChanged(qreal width);
     void spacingChanged(int spacing);
 
 protected:
-    void      flowView();
-    bool      eventFilter(QObject* watched, QEvent* event) override;
-    ShareData getShareData();
+    void flowView();
 
 private:
-    qreal                    width_         = 300;
-    std::atomic_bool         stop_          = false;
-    bool                     enable_scaled_ = true;
-    int                      spacing_       = -1;
-    Digikam::DInfoInterface* iface          = nullptr;
+    Digikam::DInfoInterface* iface = nullptr;
 };
 
 }    // namespace Cathaysia
