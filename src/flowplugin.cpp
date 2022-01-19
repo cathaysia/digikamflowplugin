@@ -1,4 +1,3 @@
-#include "PicFlowView.hpp"
 
 // Qt
 #include <QApplication>
@@ -21,37 +20,38 @@
 
 #include <digikam/managedloadsavethread.h>
 
-#include "PicDialog.hpp"
+#include "flowplugin.hpp"
+#include "picdialog.hpp"
 
 namespace Cathaysia {
 
-PicFlowView::PicFlowView(QObject* const parent) : DPluginGeneric { parent } { }
+FlowPlugin::FlowPlugin(QObject* const parent) : DPluginGeneric { parent } { }
 
-PicFlowView::~PicFlowView() noexcept { }
+FlowPlugin::~FlowPlugin() noexcept { }
 
-QString PicFlowView::name() const {
+QString FlowPlugin::name() const {
     return tr("PicFlowPlugin");
 }
 
-QString PicFlowView::iid() const {
+QString FlowPlugin::iid() const {
     return QLatin1String(DPLUGIN_IID);
 }
 
-QIcon PicFlowView::icon() const {
+QIcon FlowPlugin::icon() const {
     return QIcon::fromTheme(QLatin1String("digikam"));
 #include <functional>
 }
 
-QString PicFlowView::description() const {
+QString FlowPlugin::description() const {
     return tr("Show pictures in a mono flow view");
 }
 
-QString PicFlowView::details() const {
+QString FlowPlugin::details() const {
     return tr("A plugin provide Flow view");
 }
 
 // clang-format off
-QList<Digikam::DPluginAuthor> PicFlowView::authors() const {
+QList<Digikam::DPluginAuthor> FlowPlugin::authors() const {
     return QList<DPluginAuthor>()
             << DPluginAuthor(QString::fromUtf8("Cathaysia"),
                              QString::fromUtf8("DragonBillow@outlook.com"),
@@ -61,16 +61,16 @@ QList<Digikam::DPluginAuthor> PicFlowView::authors() const {
 // clang-format on
 
 // Basic setting to plugin
-void PicFlowView::setup(QObject* const parent) {
+void FlowPlugin::setup(QObject* const parent) {
     DPluginAction* const ac = new DPluginAction(parent);
     ac->setIcon(icon());
     ac->setObjectName(QLatin1String("PiclLowView"));
     ac->setActionCategory(DPluginAction::ActionCategory::GenericView);
-    ac->setText("PicFlowView");
+    ac->setText("FlowPlugin");
     // add menu items
     auto setting = new QMenu;
     // add this action for open plugin
-    auto openthis = setting->addAction(tr("Open view"), this, &PicFlowView::flowView);
+    auto openthis = setting->addAction(tr("Open view"), this, &FlowPlugin::flowView);
     // ReferenceWidth setting
     auto widthAction = setting->addAction(tr("Set reference width"), [this]() {
         bool ok = false;
@@ -88,16 +88,16 @@ void PicFlowView::setup(QObject* const parent) {
         emit spacingChanged(result);
     });
     ac->setMenu(setting);
-    connect(ac, &DPluginAction::triggered, this, &PicFlowView::flowView);
+    connect(ac, &DPluginAction::triggered, this, &FlowPlugin::flowView);
     addAction(ac);
     iface = infoIface(ac);
 }
 
-void PicFlowView::flowView() {
+void FlowPlugin::flowView() {
     auto* dialog = new PicDialog;
 
-    connect(this, &PicFlowView::spacingChanged, dialog, &PicDialog::setSpacing);
-    connect(this, &PicFlowView::widthChanged, dialog, &PicDialog::setWidgetWidth);
+    connect(this, &FlowPlugin::spacingChanged, dialog, &PicDialog::setSpacing);
+    connect(this, &FlowPlugin::widthChanged, dialog, &PicDialog::setWidgetWidth);
 
     dialog->resize(800, 600);
     dialog->show();

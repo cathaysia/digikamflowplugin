@@ -1,4 +1,4 @@
-#include "PicDialog.hpp"
+#include "picdialog.hpp"
 
 #include <QLabel>
 #include <QScrollArea>

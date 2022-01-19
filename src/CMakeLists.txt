@@ -13,12 +13,13 @@ set_package_properties(
   URL "http://www.digikam.org"
   DESCRIPTION "digiKam core library"
 )
-
 add_library(
   PicFlowView
   MODULE
-  PicFlowView.cpp PicDialog.cpp
-  PicFlowView.hpp PicDialog.hpp
+  flowplugin.cpp
+  picdialog.cpp
+  flowplugin.hpp
+  picdialog.hpp
 )
 
 set_target_properties(

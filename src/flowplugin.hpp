@@ -14,15 +14,15 @@ using namespace Digikam;
 
 namespace Cathaysia {
 
-class PicFlowView : public DPluginGeneric {
+class FlowPlugin : public DPluginGeneric {
     Q_OBJECT
     Q_PLUGIN_METADATA(IID DPLUGIN_IID)
     Q_INTERFACES(Digikam::DPluginGeneric)
 
 public:
     typedef std::pair<QDialog*, Z::FlowLayout*> ShareData;
-    explicit PicFlowView(QObject* const parent = nullptr);
-    ~PicFlowView() noexcept;
+    explicit FlowPlugin(QObject* const parent = nullptr);
+    ~FlowPlugin() noexcept;
     QString              name() const override;
     QString              iid() const override;
     QIcon                icon() const override;
