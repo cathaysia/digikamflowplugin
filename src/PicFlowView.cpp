@@ -219,20 +219,6 @@ void PicFlowView::flowView() {
         qDebug() << "producer thread complete";
     });
 
-    // check for valid data
-    bool hasVaildImg    = false;
-    auto supportFormats = QImageReader::supportedImageFormats();
-    for(auto& item: iface->currentAlbumItems()) {
-        for(auto& suffix: supportFormats) {
-            hasVaildImg = item.toString().endsWith(suffix);
-            if(hasVaildImg) break;
-        }
-    }
-    if(!hasVaildImg) {
-        qInfo() << "has no valid data, exit!";
-        this->stop_ = true;
-        return;
-    }
     // Add QImage to GUI in main thread
     size_t  counter = 0;
     QPixmap tmp;
