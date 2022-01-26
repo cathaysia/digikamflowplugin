@@ -19,6 +19,7 @@
 #include <QTranslator>
 
 #include <digikam/managedloadsavethread.h>
+#include <digikam/previewloadthread.h>
 
 #include "flowplugin.hpp"
 #include "picdialog.hpp"
@@ -101,20 +102,11 @@ void FlowPlugin::flowView() {
 
     dialog->resize(800, 600);
     dialog->show();
-    /**
-     * So, the steps for using ManagedLoadSaveThread:
-     * 1. create ManagedLoadSaveThread
-     * 2. call ManagedLoadSaveThread::load
-     * 3. drag data by signal: ManagedLoadSaveThread::signalImageLoaded(LoadingDescription, DImg)
-     */
-
-    CachedLoadThread* t = new CachedLoadThread(dialog);
-    // ManagedLoadSaveThread* t = new ManagedLoadSaveThread(dialog);
-    connect(t, &ManagedLoadSaveThread::signalImageLoaded, dialog, &PicDialog::loadPic);
-    connect(dialog, &PicDialog::close, t, &ManagedLoadSaveThread::stopAllTasks);
 
     auto items = iface->currentAlbumItems();
-    for(auto& it: items) t->load(dialog->createLoadingDescription(it.toString().replace("file://", "")));
+    for(auto& it: items) dialog->load(it);
+
+    // for(auto& it: items) t->load(dialog->createLoadingDescription(it.toString().replace("file://", "")));
 }
 
 }    // namespace Cathaysia

@@ -1,7 +1,7 @@
 #include <flowlayout.h>
 #include <QDialog>
 
-#include <digikam/managedloadsavethread.h>
+#include <digikam/previewloadthread.h>
 
 using namespace Digikam;
 
@@ -19,22 +19,15 @@ public:
 
     LoadingDescription createLoadingDescription(const QString& filePath);
 
+    void load(QUrl const& url);
+
 signals:
     void onClose();
 
 private:
-    int            spacing_        = -1;
-    qreal          referenceWidth_ = 300;
-    QWidget*       box_            = nullptr;
-    Z::FlowLayout* layout_         = nullptr;
-};
-
-class CachedLoadThread : public ManagedLoadSaveThread {
-    Q_OBJECT
-public:
-    CachedLoadThread(QObject* parent = nullptr) : ManagedLoadSaveThread(parent) { }
-    ~CachedLoadThread() { }
-    void load(const LoadingDescription& description) {
-        ManagedLoadSaveThread::load(description, LoadingModeShared, m_loadingPolicy);
-    }
+    int                spacing_;
+    qreal              referenceWidth_;
+    QWidget*           box_;
+    Z::FlowLayout*     layout_;
+    PreviewLoadThread* t;
 };

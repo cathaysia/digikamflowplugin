@@ -2,8 +2,16 @@
 
 #include <QLabel>
 #include <QScrollArea>
+#include <QUrl>
 
-PicDialog::PicDialog(QWidget* parent) : QDialog(parent) {
+PicDialog::PicDialog(QWidget* parent)
+    : QDialog(parent)
+    , spacing_(-1)
+    , referenceWidth_(300)
+    , box_(new QWidget(this))
+    , layout_(new Z::FlowLayout(box_))
+    , t(new PreviewLoadThread(this)) {
+
     this->setAttribute(Qt::WA_DeleteOnClose, true);
     this->installEventFilter(this);
     this->setLayout(new QHBoxLayout);
@@ -12,21 +20,20 @@ PicDialog::PicDialog(QWidget* parent) : QDialog(parent) {
     layout()->addWidget(scrollWidget);
     scrollWidget->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
-    box_ = new QWidget(this);
     scrollWidget->setWidget(box_);
 
-    layout_ = new Z::FlowLayout(box_);
     box_->setLayout(layout_);
 
     layout_->setSpacing(spacing_);
 
     // Set ReferenceWidth
-    layout_->setWidgetWidth(referenceWidth_);
+    layout_->setRefWidth(referenceWidth_);
+    connect(t, &PreviewLoadThread::signalImageLoaded, this, &PicDialog::loadPic);
 }
 PicDialog::~PicDialog() { }
 
 void PicDialog::setWidgetWidth(qreal width) {
-    layout_->setWidgetWidth(width);
+    layout_->setRefWidth(referenceWidth_);
     referenceWidth_ = width;
 }
 
@@ -35,10 +42,12 @@ void PicDialog::setSpacing(int spacing) {
 }
 
 void PicDialog::loadPic(const LoadingDescription&, const DImg& dimg) {
+    if(dimg.isNull()) { qDebug() << "DImg null"; }
     auto* lbl = new QLabel;
     auto  pix = dimg.convertToPixmap();
-    if(pix.width() * pix.height() > 1920 * 1080)
-        pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    if(pix.isNull()) return;
+    qDebug() << pix;
+    qDebug() << lbl->sizeHint();
     lbl->setPixmap(pix);
     layout_->addWidget(lbl);
 }
@@ -57,9 +66,12 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
     return false;
 }
 
+void PicDialog::load(const QUrl& url) {
+    t->load(this->createLoadingDescription(url.toLocalFile()));
+}
 LoadingDescription PicDialog::createLoadingDescription(const QString& filePath) {
 
-    LoadingDescription description(filePath, PreviewSettings::fastPreview(), 0);
+    LoadingDescription description(filePath, PreviewSettings::fastPreview(), 1920);
 
     if(DImg::fileFormat(filePath) == DImg::RAW) {
         description.rawDecodingSettings.optimizeTimeLoading();
