@@ -3,6 +3,7 @@
 #include <QLabel>
 #include <QScrollArea>
 #include <QUrl>
+#include <QApplication>
 
 PicDialog::PicDialog(QWidget* parent)
     : QDialog(parent)
@@ -67,7 +68,10 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
 }
 
 void PicDialog::load(const QUrl& url) {
-    t->load(this->createLoadingDescription(url.toLocalFile()));
+    // t->load(this->createLoadingDescription(url.toLocalFile()));
+    DImg const& img = PreviewLoadThread::loadFastButLargeSynchronously(url.toLocalFile(), 1920 * 1080);
+    qApp->processEvents();
+    loadPic({}, img);
 }
 LoadingDescription PicDialog::createLoadingDescription(const QString& filePath) {
 
