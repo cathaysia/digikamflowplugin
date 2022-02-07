@@ -17,7 +17,7 @@ include(CMakePrintHelpers)
 
 
 add_subdirectory(extern/QtFlowLayout)
-include_directories(extern/QtFlowLayout)
+include_directories(extern/QtFlowLayout extern/include)
 add_subdirectory(src)
 
 include(InstallRequiredSystemLibraries)
