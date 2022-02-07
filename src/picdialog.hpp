@@ -1,5 +1,6 @@
 #include <flowlayout.h>
 #include <QDialog>
+#include <QThreadPool>
 
 #include <digikam/previewloadthread.h>
 
@@ -8,21 +9,36 @@ using namespace Digikam;
 class PicDialog : public QDialog {
     Q_OBJECT
 public:
+    Q_PROPERTY(int spacing_ READ spacing WRITE setSpacing);
+    Q_PROPERTY(qreal referenceWidth_ READ referenceWidth WRITE setWidgetWidth);
+
     PicDialog(QWidget* parent = nullptr);
     ~PicDialog();
 
-    void loadPic(const LoadingDescription&, const DImg& dimg);
-    void setWidgetWidth(qreal width);
-    void setSpacing(int spacing);
+    void  setWidgetWidth(qreal width);
+    qreal referenceWidth();
+    void  setSpacing(int spacing);
+    int   spacing();
 
     bool eventFilter(QObject* watched, QEvent* event) override;
 
-    LoadingDescription createLoadingDescription(const QString& filePath);
+    // load picture
+    // When loadbyPool == false, this plugin will get all benefit from from digikam
+    // When loadbyPool == true, this plugin load image by QThreadPool, this make it faster in some
+    // machine
+    void load(QUrl const& url, bool loadbyPool = false);
 
-    void load(QUrl const& url);
+public slots:
+    // add picture to layout
+    void add(const QPixmap&);
+    void add(const LoadingDescription&, const DImg& dimg);
 
 signals:
-    void onClose();
+    void signalOnClose();
+    void signalPixLoaded(QPixmap const&);
+
+protected:
+    LoadingDescription createLoadingDescription(const QString& filePath);
 
 private:
     int                spacing_;
@@ -30,4 +46,5 @@ private:
     QWidget*           box_;
     Z::FlowLayout*     layout_;
     PreviewLoadThread* t;
+    QThreadPool*       pool_;
 };

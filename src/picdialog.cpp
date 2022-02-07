@@ -1,9 +1,9 @@
 #include "picdialog.hpp"
 
+#include <QApplication>
 #include <QLabel>
 #include <QScrollArea>
 #include <QUrl>
-#include <QApplication>
 
 PicDialog::PicDialog(QWidget* parent)
     : QDialog(parent)
@@ -11,7 +11,8 @@ PicDialog::PicDialog(QWidget* parent)
     , referenceWidth_(300)
     , box_(new QWidget(this))
     , layout_(new Z::FlowLayout(box_))
-    , t(new PreviewLoadThread(this)) {
+    , t(new PreviewLoadThread(this))
+    , pool_(new QThreadPool) {
 
     this->setAttribute(Qt::WA_DeleteOnClose, true);
     this->installEventFilter(this);
@@ -29,29 +30,54 @@ PicDialog::PicDialog(QWidget* parent)
 
     // Set ReferenceWidth
     layout_->setRefWidth(referenceWidth_);
-    connect(t, &PreviewLoadThread::signalImageLoaded, this, &PicDialog::loadPic);
+    // clang-format off
+    connect(t, &PreviewLoadThread::signalImageLoaded,
+            this, QOverload<LoadingDescription const&, DImg const&>::of(&PicDialog::add),
+            Qt::QueuedConnection);
+    connect(this, &PicDialog::signalPixLoaded,
+            this, QOverload<QPixmap const&>::of(&PicDialog::add),
+            Qt::QueuedConnection);
+    // clang-format on
 }
-PicDialog::~PicDialog() { }
+PicDialog::~PicDialog() {
+    pool_->waitForDone(1000);
+    delete pool_;
+    t->stop();
+    t->wait();
+}
 
 void PicDialog::setWidgetWidth(qreal width) {
     layout_->setRefWidth(referenceWidth_);
     referenceWidth_ = width;
 }
 
+qreal PicDialog::referenceWidth() {
+    return this->referenceWidth_;
+}
+
 void PicDialog::setSpacing(int spacing) {
     layout_->setSpacing(spacing);
 }
 
-void PicDialog::loadPic(const LoadingDescription&, const DImg& dimg) {
-    if(dimg.isNull()) { qDebug() << "DImg null"; }
-    auto* lbl = new QLabel;
-    auto  pix = dimg.convertToPixmap();
+int PicDialog::spacing() {
+    return this->spacing_;
+}
+
+void PicDialog::add(const LoadingDescription& desc, const DImg& dimg) {
+    if(dimg.isNull()) {
+        qDebug() << "file " << desc.filePath << " load be null in DImg";
+        return;
+    }
+    this->add(dimg.convertToPixmap());
+}
+
+void PicDialog::add(const QPixmap& pix) {
     if(pix.isNull()) return;
-    qDebug() << pix;
-    qDebug() << lbl->sizeHint();
+    auto* lbl = new QLabel;
     lbl->setPixmap(pix);
     layout_->addWidget(lbl);
 }
+
 // Update layout after the size of dialog has changed
 bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
     auto dialog = qobject_cast<PicDialog*>(watched);
@@ -61,17 +87,33 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
         return true;
     }
     if(event->type() == QEvent::Close) {
-        emit this->onClose();
+        emit this->signalOnClose();
         return true;
     }
     return false;
 }
 
-void PicDialog::load(const QUrl& url) {
-    // t->load(this->createLoadingDescription(url.toLocalFile()));
-    DImg const& img = PreviewLoadThread::loadFastButLargeSynchronously(url.toLocalFile(), 1920 * 1080);
-    qApp->processEvents();
-    loadPic({}, img);
+void PicDialog::load(const QUrl& url, bool loadByPool) {
+    if(!loadByPool) {
+        // t->load(this->createLoadingDescription(url.toLocalFile()));
+        // BUG: close dialog before image not loaded fully will cause digikam core
+        DImg const& img = PreviewLoadThread::loadFastButLargeSynchronously(url.toLocalFile(), 1920 * 1080);
+        emit this->signalPixLoaded(img.convertToPixmap());
+        return;
+    }
+    auto task = [this](QUrl const& url) {
+        QPixmap pix = DImg(url.toLocalFile()).convertToPixmap();
+        if(pix.isNull()) {
+            qDebug() << "Image " << url.toLocalFile() << " load failed";
+            return;
+        }
+        if((pix.width() * pix.height() > 1920 * 1080)) {
+            //
+            pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        }
+        emit this->signalPixLoaded(pix);
+    };
+    pool_->start(std::bind(task, url));
 }
 LoadingDescription PicDialog::createLoadingDescription(const QString& filePath) {
 
