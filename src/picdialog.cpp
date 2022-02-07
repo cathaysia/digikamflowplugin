@@ -11,7 +11,7 @@ PicDialog::PicDialog(QWidget* parent)
     , referenceWidth_(300)
     , box_(new QWidget(this))
     , layout_(new Z::FlowLayout(box_))
-    , t(new PreviewLoadThread(this))
+    , t(new PreviewLoadThread(this)) // this member is used at this time
     , pool_(new QThreadPool) {
 
     this->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -40,10 +40,10 @@ PicDialog::PicDialog(QWidget* parent)
     // clang-format on
 }
 PicDialog::~PicDialog() {
-    pool_->waitForDone(1000);
-    delete pool_;
     t->stop();
+    pool_->waitForDone(1000);
     t->wait();
+    delete pool_;
 }
 
 void PicDialog::setWidgetWidth(qreal width) {
@@ -97,6 +97,8 @@ void PicDialog::load(const QUrl& url, bool loadByPool) {
     if(!loadByPool) {
         // t->load(this->createLoadingDescription(url.toLocalFile()));
         // BUG: close dialog before image not loaded fully will cause digikam core
+        // the reason is that PreviewLoadThread to slow when it cancel it task
+        // So I want use t->load ..., but t->load can load one picture for every album
         DImg const& img = PreviewLoadThread::loadFastButLargeSynchronously(url.toLocalFile(), 1920 * 1080);
         emit this->signalPixLoaded(img.convertToPixmap());
         return;
@@ -113,6 +115,11 @@ void PicDialog::load(const QUrl& url, bool loadByPool) {
         }
         emit this->signalPixLoaded(pix);
     };
+    // using PreviewLoadThread and QThreadPool, stuck still, but better
+    // pool_->start(std::bind([url, this]() {
+    //     DImg const& img = PreviewLoadThread::loadFastButLargeSynchronously(url.toLocalFile(), 1920 * 1080);
+    //     emit this->signalPixLoaded(img.convertToPixmap());
+    // }));
     pool_->start(std::bind(task, url));
 }
 LoadingDescription PicDialog::createLoadingDescription(const QString& filePath) {
