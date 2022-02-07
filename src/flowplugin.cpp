@@ -104,9 +104,7 @@ void FlowPlugin::flowView() {
     dialog->show();
 
     auto items = iface->currentAlbumItems();
-    for(auto& it: items) dialog->load(it);
-
-    // for(auto& it: items) t->load(dialog->createLoadingDescription(it.toString().replace("file://", "")));
+    for(auto& it: items) dialog->load(it, true);
 }
 
 }    // namespace Cathaysia
