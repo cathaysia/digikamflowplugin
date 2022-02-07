@@ -23,7 +23,7 @@ errorformat=%f:%l:%m
 save=1
 
 [project-run]
-command=cmake --build build/Release && sudo cmake --install build/Release --prefix=/usr && digikam
+command=cmake --build build/Release && sudo cmake --install build/Release --prefix=/usr
 cwd=$(VIM_ROOT)
 output=terminal
 
