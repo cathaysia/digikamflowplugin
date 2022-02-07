@@ -19,6 +19,8 @@
 #include <QThreadPool>
 #include <QTranslator>
 
+#include <digikam/dimg.h>
+
 namespace Cathaysia {
 
 PicFlowView::PicFlowView(QObject* const parent) : DPluginGeneric { parent } { }
@@ -178,7 +180,8 @@ void PicFlowView::flowView() {
             }
             qDebug() << "producer: load " << imgPath;
             // QPixmap has implicit data share, so smart ptr is not need here.
-            QPixmap pix(imgPath);
+            DImg    img(imgPath);
+            QPixmap pix = img.convertToPixmap();
             if(pix.isNull()) return;
             // Scale picture for reduce memory footprint
             // pix = pix.scaled(1344,756, Qt::KeepAspectRatio, Qt::FastTransformation).scaled(960,540,
