@@ -35,12 +35,14 @@ public:
 signals:
     void widthChanged(qreal width);
     void spacingChanged(int spacing);
+    void signalStyleChanged(Z::FlowLayout::Style);
 
 protected:
     void flowView();
 
 private:
     Digikam::DInfoInterface* iface = nullptr;
+    Z::FlowLayout::Style style_ = Z::FlowLayout::Style::Col;
 };
 
 }    // namespace Cathaysia

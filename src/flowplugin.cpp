@@ -81,6 +81,22 @@ void FlowPlugin::setup(QObject* const parent) {
         emit widthChanged(result);
     });
     widthAction->setWhatsThis(tr("Set refenence width, picture will use it as it's width <b>as much as possible</b>."));
+    auto styleAction = setting->addAction(tr("Set style"), [this]() {
+        bool        ok = false;
+        QStringList list;
+        list << tr("Row") << tr("Square") << tr("Col");
+        auto result = QInputDialog::getItem(nullptr, tr("Choose style"), tr("style"), list);
+        if(result == "Row") {
+            this->style_ = Z::FlowLayout::Style::Row;
+            emit this->signalStyleChanged(style_);
+        } else if(result == "Square") {
+            this->style_ = Z::FlowLayout::Style::Square;
+            emit this->signalStyleChanged(style_);
+        } else if(result == "Col") {
+            this->style_ = Z::FlowLayout::Style::Col;
+            emit this->signalStyleChanged(style_);
+        }
+    });
     // spacing
     auto spac = setting->addAction("Spacing", [this]() {
         bool ok     = false;
@@ -96,9 +112,11 @@ void FlowPlugin::setup(QObject* const parent) {
 
 void FlowPlugin::flowView() {
     auto* dialog = new PicDialog;
+    dialog->setStyle(style_);
 
     connect(this, &FlowPlugin::spacingChanged, dialog, &PicDialog::setSpacing);
-    connect(this, &FlowPlugin::widthChanged, dialog, &PicDialog::setWidgetWidth);
+    connect(this, &FlowPlugin::widthChanged, dialog, &PicDialog::setReferenceWidth);
+    connect(this, &FlowPlugin::signalStyleChanged, dialog, &PicDialog::setStyle);
 
     dialog->resize(800, 600);
     dialog->show();

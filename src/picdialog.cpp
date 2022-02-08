@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QLabel>
+#include <QPixmap>
 #include <QScrollArea>
 #include <QUrl>
 
@@ -11,7 +12,7 @@ PicDialog::PicDialog(QWidget* parent)
     , referenceWidth_(300)
     , box_(new QWidget(this))
     , layout_(new Z::FlowLayout(box_))
-    , t(new PreviewLoadThread(this)) // this member is used at this time
+    , t(new PreviewLoadThread(this))    // this member is used at this time
     , pool_(new QThreadPool) {
 
     this->setAttribute(Qt::WA_DeleteOnClose, true);
@@ -46,7 +47,7 @@ PicDialog::~PicDialog() {
     delete pool_;
 }
 
-void PicDialog::setWidgetWidth(qreal width) {
+void PicDialog::setReferenceWidth(qreal width) {
     layout_->setRefWidth(referenceWidth_);
     referenceWidth_ = width;
 }
@@ -63,6 +64,10 @@ int PicDialog::spacing() {
     return this->spacing_;
 }
 
+void PicDialog::setStyle(Z::FlowLayout::Style sty) {
+    layout_->setStyle(sty);
+}
+
 void PicDialog::add(const LoadingDescription& desc, const DImg& dimg) {
     if(dimg.isNull()) {
         qDebug() << "file " << desc.filePath << " load be null in DImg";
@@ -74,21 +79,33 @@ void PicDialog::add(const LoadingDescription& desc, const DImg& dimg) {
 void PicDialog::add(const QPixmap& pix) {
     if(pix.isNull()) return;
     auto* lbl = new QLabel;
+    lbl->installEventFilter(this);
     lbl->setPixmap(pix);
     layout_->addWidget(lbl);
 }
 
 // Update layout after the size of dialog has changed
 bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
+    // eventFilter for this self
     auto dialog = qobject_cast<PicDialog*>(watched);
-    if(!dialog) return false;
-    if(event->type() == QEvent::Resize) {
-        box_->resize(dialog->width(), layout_->innerHeight());
-        return true;
+    if(dialog) {
+        if(event->type() == QEvent::Resize) {
+            box_->resize(dialog->width(), layout_->innerHeight());
+            return true;
+        }
+        if(event->type() == QEvent::Close) {
+            emit this->signalOnClose();
+            return true;
+        }
     }
-    if(event->type() == QEvent::Close) {
-        emit this->signalOnClose();
-        return true;
+    // eventFilter for QLabel
+    auto lbl = qobject_cast<QLabel*>(watched);
+    if(lbl) {
+        if(event->type() == QEvent::Resize) {
+            // TODO: auto scale pixmap
+            // lbl->setPixmap(lbl->pixmap(Qt::ReturnByValue).scaled(lbl->size(), Qt::KeepAspectRatio));
+            return false;
+        }
     }
     return false;
 }

@@ -10,12 +10,12 @@ class PicDialog : public QDialog {
     Q_OBJECT
 public:
     Q_PROPERTY(int spacing_ READ spacing WRITE setSpacing);
-    Q_PROPERTY(qreal referenceWidth_ READ referenceWidth WRITE setWidgetWidth);
+    Q_PROPERTY(qreal referenceWidth_ READ referenceWidth WRITE setReferenceWidth);
 
     PicDialog(QWidget* parent = nullptr);
     ~PicDialog();
 
-    void  setWidgetWidth(qreal width);
+    void  setReferenceWidth(qreal width);
     qreal referenceWidth();
     void  setSpacing(int spacing);
     int   spacing();
@@ -27,6 +27,7 @@ public:
     // When loadbyPool == true, this plugin load image by QThreadPool, this make it faster in some
     // machine
     void load(QUrl const& url, bool loadbyPool = false);
+    void setStyle(Z::FlowLayout::Style);
 
 public slots:
     // add picture to layout
