@@ -41,8 +41,10 @@ protected:
     void flowView();
 
 private:
-    Digikam::DInfoInterface* iface = nullptr;
-    Z::FlowLayout::Style style_ = Z::FlowLayout::Style::Col;
+    // using QThreadPool loader but not digikam
+    bool                     useCustomLoader_;
+    Digikam::DInfoInterface* iface  = nullptr;
+    Z::FlowLayout::Style     style_ = Z::FlowLayout::Style::Col;
 };
 
 }    // namespace Cathaysia

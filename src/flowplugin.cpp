@@ -26,7 +26,7 @@
 
 namespace Cathaysia {
 
-FlowPlugin::FlowPlugin(QObject* const parent) : DPluginGeneric { parent } { }
+FlowPlugin::FlowPlugin(QObject* const parent) : DPluginGeneric { parent }, useCustomLoader_(true) { }
 
 FlowPlugin::~FlowPlugin() noexcept { }
 
@@ -81,18 +81,19 @@ void FlowPlugin::setup(QObject* const parent) {
         emit widthChanged(result);
     });
     widthAction->setWhatsThis(tr("Set refenence width, picture will use it as it's width <b>as much as possible</b>."));
+    // style
     auto styleAction = setting->addAction(tr("Set style"), [this]() {
         bool        ok = false;
         QStringList list;
         list << tr("Row") << tr("Square") << tr("Col");
         auto result = QInputDialog::getItem(nullptr, tr("Choose style"), tr("style"), list);
-        if(result == "Row") {
+        if(result == tr("Row")) {
             this->style_ = Z::FlowLayout::Style::Row;
             emit this->signalStyleChanged(style_);
-        } else if(result == "Square") {
+        } else if(result == tr("Square")) {
             this->style_ = Z::FlowLayout::Style::Square;
             emit this->signalStyleChanged(style_);
-        } else if(result == "Col") {
+        } else if(result == tr("Col")) {
             this->style_ = Z::FlowLayout::Style::Col;
             emit this->signalStyleChanged(style_);
         }
@@ -104,6 +105,20 @@ void FlowPlugin::setup(QObject* const parent) {
         if(!ok) return;
         emit spacingChanged(result);
     });
+    // Loader
+    auto loader = setting->addAction(tr("Use custom loader"), [this]() {
+        QStringList list;
+        list << tr("Custom Loader") << tr("Digikam");
+        auto result = QInputDialog::getItem(nullptr, tr("Choose Loader"), tr("Loader"), list);
+        if(result == tr("Custom Loader")) {
+            this->useCustomLoader_ = true;
+        } else if(result == tr("Digikam")) {
+            this->useCustomLoader_ = false;
+        }
+    });
+    loader->setWhatsThis(
+        tr("Custom Loader will cause this plugin can not"
+           "get profilt from digikam cache, but it should be less bugs"));
     ac->setMenu(setting);
     connect(ac, &DPluginAction::triggered, this, &FlowPlugin::flowView);
     addAction(ac);
@@ -122,7 +137,7 @@ void FlowPlugin::flowView() {
     dialog->show();
 
     auto items = iface->currentAlbumItems();
-    for(auto& it: items) dialog->load(it, true);
+    for(auto& it: items) dialog->load(it, useCustomLoader_);
 }
 
 }    // namespace Cathaysia
