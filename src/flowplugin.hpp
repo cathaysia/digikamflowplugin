@@ -2,11 +2,7 @@
 #define DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN
 
 #include <digikam/dplugingeneric.h>
-#include <digikam/loadingdescription.h>
-
 #include <flowlayout.h>
-
-#include <utility>
 
 #define DPLUGIN_IID "org.kde.digikam.plugin.generic.FlowView"
 
@@ -20,7 +16,6 @@ class FlowPlugin : public DPluginGeneric {
     Q_INTERFACES(Digikam::DPluginGeneric)
 
 public:
-    typedef std::pair<QDialog*, Z::FlowLayout*> ShareData;
     explicit FlowPlugin(QObject* const parent = nullptr);
     ~FlowPlugin() noexcept;
     QString              name() const override;
@@ -33,7 +28,7 @@ public:
     void setup(QObject* const) override;
 
 signals:
-    void widthChanged(qreal width);
+    void refWidthChanged(qreal width);
     void spacingChanged(int spacing);
     void signalStyleChanged(Z::FlowLayout::Style);
 
@@ -42,10 +37,11 @@ protected:
 
 private:
     // using QThreadPool loader but not digikam
-    qreal                    refWidth_ = 300;
+    int                      spacing_;
+    qreal                    refWidth_;
     bool                     useCustomLoader_;
-    Digikam::DInfoInterface* iface  = nullptr;
-    Z::FlowLayout::Style     style_ = Z::FlowLayout::Style::Col;
+    Digikam::DInfoInterface* iface_;
+    Z::FlowLayout::Style     style_;
 };
 
 }    // namespace Cathaysia

@@ -1,32 +1,20 @@
 
 // Qt
-#include <QApplication>
-#include <QDialog>
-#include <QDir>
-#include <QDoubleSpinBox>
-#include <QHBoxLayout>
-#include <QImage>
-#include <QImageReader>
 #include <QInputDialog>
-#include <QLabel>
 #include <QMenu>
-#include <QPointer>
-#include <QQueue>
-#include <QScrollArea>
-#include <QSemaphore>
-#include <QThread>
-#include <QThreadPool>
-#include <QTranslator>
-
-#include <digikam/managedloadsavethread.h>
-#include <digikam/previewloadthread.h>
 
 #include "flowplugin.hpp"
 #include "picdialog.hpp"
 
 namespace Cathaysia {
 
-FlowPlugin::FlowPlugin(QObject* const parent) : DPluginGeneric { parent }, useCustomLoader_(true) { }
+FlowPlugin::FlowPlugin(QObject* const parent)
+    : DPluginGeneric(parent)
+    , spacing_(2)
+    , refWidth_(300)
+    , useCustomLoader_(true)
+    , iface_(nullptr)
+    , style_(Z::FlowLayout::Style::Col) { }
 
 FlowPlugin::~FlowPlugin() noexcept { }
 
@@ -79,7 +67,7 @@ void FlowPlugin::setup(QObject* const parent) {
             nullptr, tr("Input reference width"), tr("Reference Width"), refWidth_, -1, 9999, 1, &ok);
         if(!ok) return;
         this->refWidth_ = result;
-        emit widthChanged(result);
+        emit refWidthChanged(result);
     });
     widthAction->setWhatsThis(tr("Set refenence width, picture will use it as it's width <b>as much as possible</b>."));
     // style
@@ -102,8 +90,9 @@ void FlowPlugin::setup(QObject* const parent) {
     // spacing
     auto spac = setting->addAction("Spacing", [this]() {
         bool ok     = false;
-        auto result = QInputDialog::getInt(nullptr, tr("Input spacing"), tr("Spacing"), -1, 0, 9999, 1, &ok);
+        auto result = QInputDialog::getInt(nullptr, tr("Input spacing"), tr("Spacing"), -1, spacing_, 9999, 1, &ok);
         if(!ok) return;
+        this->spacing_ = result;
         emit spacingChanged(result);
     });
     // Loader
@@ -123,22 +112,23 @@ void FlowPlugin::setup(QObject* const parent) {
     ac->setMenu(setting);
     connect(ac, &DPluginAction::triggered, this, &FlowPlugin::flowView);
     addAction(ac);
-    iface = infoIface(ac);
+    iface_ = infoIface(ac);
 }
 
 void FlowPlugin::flowView() {
     auto* dialog = new PicDialog;
-    dialog->setStyle(style_);
+    dialog->setSpacing(spacing_);
     dialog->setReferenceWidth(refWidth_);
+    dialog->setStyle(style_);
 
     connect(this, &FlowPlugin::spacingChanged, dialog, &PicDialog::setSpacing);
-    connect(this, &FlowPlugin::widthChanged, dialog, &PicDialog::setReferenceWidth);
+    connect(this, &FlowPlugin::refWidthChanged, dialog, &PicDialog::setReferenceWidth);
     connect(this, &FlowPlugin::signalStyleChanged, dialog, &PicDialog::setStyle);
 
     dialog->resize(800, 600);
     dialog->show();
 
-    auto items = iface->currentAlbumItems();
+    auto items = iface_->currentAlbumItems();
     for(auto& it: items) dialog->load(it, useCustomLoader_);
 }
 
