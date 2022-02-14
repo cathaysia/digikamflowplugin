@@ -64,6 +64,7 @@ void PicDialog::add(const QPixmap& pix) {
     auto* lbl = new QLabel;
     lbl->installEventFilter(this);
     lbl->setPixmap(pix);
+    lbl->setScaledContents(true);
     layout_->addWidget(lbl);
 }
 
