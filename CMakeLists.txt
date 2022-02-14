@@ -13,7 +13,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(FeatureSummary)
 
 add_subdirectory(extern/QtFlowLayout)
-include_directories(extern/QtFlowLayout extern/include)
+include_directories(extern/QtFlowLayout)
 add_subdirectory(src)
 
 include(InstallRequiredSystemLibraries)
