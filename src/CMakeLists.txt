@@ -3,16 +3,8 @@ set(CMAKE_AUTOMOC ON)
 
 find_package(Qt5 NO_MODULE COMPONENTS Core Widgets Gui REQUIRED)
 find_package(DigikamCore CONFIG REQUIRED)
-include(FindThreads)
-if(NOT ${Threads_FOUND})
-    message(FATAL "Thread Library has not found!")
-endif()
+include(FindThreads REQUIRED)
 
-set_package_properties(
-  DigikamCore PROPERTIES
-  URL "http://www.digikam.org"
-  DESCRIPTION "digiKam core library"
-)
 add_library(
   Generic_PicFlowView_Plugin
   MODULE
@@ -47,14 +39,6 @@ target_link_libraries(
   FlowLayout
 )
 
-# find_file(
-#   DIGIKAM_PLUGIN_CONFIG DigikamPluginConfig.cmake
-#   HINTS ${CMAKE_INSTALL_FULL_LIBDIR}/cmake/DigikamPlugin/
-#   HINTS /usr/lib64/cmake/DigikamPlugin/
-#   HINTS /usr/lib/cmake/DigikamPlugin/
-# )
-# include(${DIGIKAM_PLUGIN_CONFIG})
-# cmake_print_variables(DPluginGenericInstallPath)
 # 这里需要使用相对路径，否则 CPack 不识别
 install(
   # TARGETS Generic_PicFlowView_Plugin DESTINATION "${DPluginGenericInstallPath}"

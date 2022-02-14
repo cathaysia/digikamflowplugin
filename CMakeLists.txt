@@ -8,20 +8,16 @@ project(
 )
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# CMAKE_PREFIX_PATH 不应当被改变，但是这里不做强制要求
-option(CMAKE_INSTALL_PREFIX "/usr/")
 
-list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 include(FeatureSummary)
-include(CMakePrintHelpers)
-
 
 add_subdirectory(extern/QtFlowLayout)
 include_directories(extern/QtFlowLayout extern/include)
 add_subdirectory(src)
 
 include(InstallRequiredSystemLibraries)
-set(CPACK_GENERATOR "TGZ;TXZ;STGZ;RPM")
+set(CPACK_GENERATOR "TGZ;RPM")
 set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_BINARY_DIR}" "${CMAKE_PROJECT_NAME}" ALL .)
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/pack")
 
@@ -39,8 +35,7 @@ set(CPACK_STRIP_FILES ON)
 set(CPACK_RPM_PACKAGE_LICENSE "GPLv3")
 set(CPACK_RPM_PACKAGE_URL ${CPACK_PROJECT_URL})
 set(CPACK_RPM_PACKAGE_DESCRIPTION ${CMAKE_PROJECT_DESCRIPTION})
-# set(CPACK_RPM_PACKAGE_REQUIRES "digikam,spdlog,qt5-qtbase")
+set(CPACK_RPM_PACKAGE_REQUIRES "digikam")
 
 include(CPack)
-cmake_print_variables(CPACK_PACKAGE_FILE_NAME)
 feature_summary(WHAT ALL FATAL_ON_MISSING_REQUIRED_PACKAGES)
