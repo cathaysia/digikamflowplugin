@@ -78,7 +78,6 @@ void PicDialog::setStyle(Z::FlowLayout::Style sty) {
     layout_->setStyle(sty);
     qDebug() << "set style";
     qApp->postEvent(this, new QResizeEvent(this->size(), this->size()));
-    QResizeEvent e(this->size(), this->size());
 }
 
 void PicDialog::add(LoadingDescription const& desc, DImg const& dimg) {
@@ -102,16 +101,7 @@ void PicDialog::add(const QPixmap& pix) {
     auto* lbl = new AspectRatioPixmapLabel;
     lbl->setPixmap(pix);
     layout_->addWidget(lbl);
-    this->adjust();
-}
-
-void PicDialog::adjust() {
-    for(int i = 0; i < layout_->count(); ++i) {
-        // adjust images's size
-        auto lbl = qobject_cast<AspectRatioPixmapLabel*>(layout_->itemAt(i)->widget());
-        if(!lbl) continue;
-        lbl->adjust();
-    }
+    qApp->postEvent(this, new QResizeEvent(this->size(), this->size()));
 }
 
 // Update layout after the size of dialog has changed
@@ -121,12 +111,12 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
     if(dialog) {
         if(event->type() == QEvent::Resize) {
             box_->resize(dialog->width(), layout_->innerHeight());
-            this->adjust();
-            return false;
-        }
-        if(event->type() == QEvent::Close) {
-            emit this->signalOnClose();
-            return false;
+            for(int i = 0; i < layout_->count(); ++i) {
+                // adjust images's size
+                auto lbl = qobject_cast<AspectRatioPixmapLabel*>(layout_->itemAt(i)->widget());
+                if(!lbl) continue;
+                lbl->adjust();
+            }
         }
     }
     return false;

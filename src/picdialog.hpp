@@ -23,15 +23,12 @@ public:
     void load(QUrl const& url, bool loadbyPool = false);
     void setStyle(Z::FlowLayout::Style);
 
-    void adjust();
-
 public slots:
     // add picture to layout
     void add(LoadingDescription const& desc, DImg const& img);
     void add(const QPixmap&);
 
 signals:
-    void signalOnClose();
     void signalPixLoaded(QPixmap const&);
 
 private:
