@@ -22,30 +22,21 @@ public:
 
     bool eventFilter(QObject* watched, QEvent* event) override;
 
-    // load picture
-    // When loadbyPool == false, this plugin will get all benefit from from digikam
-    // When loadbyPool == true, this plugin load image by QThreadPool, this make it faster in some
-    // machine
     void load(QUrl const& url, bool loadbyPool = false);
     void setStyle(Z::FlowLayout::Style);
 
 public slots:
     // add picture to layout
     void add(const QPixmap&);
-    void add(const LoadingDescription&, const DImg& dimg);
 
 signals:
     void signalOnClose();
     void signalPixLoaded(QPixmap const&);
 
-protected:
-    LoadingDescription createLoadingDescription(const QString& filePath);
-
 private:
-    int                spacing_;
-    qreal              referenceWidth_;
-    QWidget*           box_;
-    Z::FlowLayout*     layout_;
-    PreviewLoadThread* t;
-    QThreadPool*       pool_;
+    int            spacing_;
+    qreal          referenceWidth_;
+    QWidget*       box_;
+    Z::FlowLayout* layout_;
+    QThreadPool*   pool_;
 };
