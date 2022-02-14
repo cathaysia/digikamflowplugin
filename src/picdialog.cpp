@@ -76,15 +76,22 @@ void PicDialog::setStyle(Z::FlowLayout::Style sty) {
     layout_->setStyle(sty);
 }
 
-void PicDialog::add(LoadingDescription const& desc, DImg const& img) {
-    if(img.isNull()) {
+void PicDialog::add(LoadingDescription const& desc, DImg const& dimg) {
+    qApp->processEvents();
+    if(dimg.isNull()) {
         qDebug() << "DImg " << desc.filePath << " load failed";
         return;
     }
-    this->add(img.convertToPixmap());
+    INSERT_CANCEL_POINT;
+    QPixmap img = dimg.convertToPixmap();
+    INSERT_CANCEL_POINT;
+    if((img.width() * img.height() > 1920 * 1080))
+        img = img.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    this->add(img);
 }
 
 void PicDialog::add(const QPixmap& pix) {
+    qApp->processEvents();
     if(pix.isNull()) return;
     INSERT_CANCEL_POINT;
     auto* lbl = new QLabel;
@@ -113,42 +120,35 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
 
 void PicDialog::load(const QUrl& url, bool loadByPool) {
     INSERT_CANCEL_POINT;
-    if(loadByPool) {
-        if(!pool_) {
-            static QThreadPool pool;
-            pool_ = &pool;
+    if(!loadByPool) {
+        if(!t_) {
+            static PreviewLoadThread t;
+            t_ = &t;
         }
-        auto task = [this](QUrl const& url) {
-            INSERT_CANCEL_POINT;
-            DImg dimg(url.toLocalFile());
-            INSERT_CANCEL_POINT;
-            QPixmap pix = dimg.convertToPixmap();
-            if(pix.isNull()) {
-                qDebug() << "Image " << url.toLocalFile() << " load failed";
-                return;
-            }
-            INSERT_CANCEL_POINT;
-            if((pix.width() * pix.height() > 1920 * 1080))
-                pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        // t_->load(url.toLocalFile(), PreviewSettings::fastPreview(), 1920);
+        const DImg& dimg = t_->loadFastSynchronously(url.toLocalFile(), 1920);
+        this->add(LoadingDescription(url.toLocalFile()), dimg);
+        return;
+    }
+    // load by QThreadPool
+    if(!pool_) {
+        static QThreadPool pool;
+        pool_ = &pool;
+    }
+    auto task = [this](QUrl const& url) {
+        INSERT_CANCEL_POINT;
+        DImg dimg(url.toLocalFile());
+        INSERT_CANCEL_POINT;
+        QPixmap pix = dimg.convertToPixmap();
+        if(pix.isNull()) {
+            qDebug() << "Image " << url.toLocalFile() << " load failed";
+            return;
+        }
+        INSERT_CANCEL_POINT;
+        if((pix.width() * pix.height() > 1920 * 1080))
+            pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-            emit this->signalPixLoaded(pix);
-        };
-        pool_->start(std::bind(task, url));
-        return;
-    }
-    if(!t_) {
-        static PreviewLoadThread t;
-        t_ = &t;
-    }
-    const DImg& dimg = t_->loadHighQualitySynchronously(url.toLocalFile());
-    if(dimg.isNull()) {
-        qDebug() << "DImg " << url.toLocalFile() << " load failed";
-        return;
-    }
-    INSERT_CANCEL_POINT;
-    QPixmap img = dimg.convertToPixmap();
-    INSERT_CANCEL_POINT;
-    if((img.width() * img.height() > 1920 * 1080))
-        img = img.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-    this->add(img);
+        emit this->signalPixLoaded(pix);
+    };
+    pool_->start(std::bind(task, url));
 }
