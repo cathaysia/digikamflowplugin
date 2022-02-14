@@ -5,7 +5,7 @@ find_package(Qt5 NO_MODULE COMPONENTS Core Widgets Gui REQUIRED)
 find_package(DigikamCore CONFIG REQUIRED)
 include(FindThreads)
 if(NOT ${Threads_FOUND})
-  message(FATAL "线程库未发现")
+    message(FATAL "Thread Library has not found!")
 endif()
 
 set_package_properties(
@@ -14,7 +14,7 @@ set_package_properties(
   DESCRIPTION "digiKam core library"
 )
 add_library(
-  PicFlowView
+  Generic_PicFlowView_Plugin
   MODULE
   flowplugin.cpp
   picdialog.cpp
@@ -23,13 +23,13 @@ add_library(
 )
 
 set_target_properties(
-  PicFlowView
+  Generic_PicFlowView_Plugin
   PROPERTIES PREFIX ""
   LINK_WHAT_YOU_USE ON
 )
 
 target_include_directories(
-  PicFlowView PRIVATE
+  Generic_PicFlowView_Plugin PRIVATE
   Digikam::digikamcore
   Qt5::Core
   Qt5::Widgets
@@ -38,7 +38,7 @@ target_include_directories(
 )
 
 target_link_libraries(
-  PicFlowView PRIVATE
+  Generic_PicFlowView_Plugin PRIVATE
   Digikam::digikamcore
   Qt5::Core
   Qt5::Widgets
@@ -57,6 +57,6 @@ target_link_libraries(
 # cmake_print_variables(DPluginGenericInstallPath)
 # 这里需要使用相对路径，否则 CPack 不识别
 install(
-  # TARGETS PicFlowView DESTINATION "${DPluginGenericInstallPath}"
-  TARGETS PicFlowView DESTINATION "lib64/qt5/plugins/digikam/generic/"
+  # TARGETS Generic_PicFlowView_Plugin DESTINATION "${DPluginGenericInstallPath}"
+  TARGETS Generic_PicFlowView_Plugin DESTINATION "lib64/qt5/plugins/digikam/generic/"
 )
