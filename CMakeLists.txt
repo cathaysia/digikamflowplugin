@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.0)
 
 project(
   digikamflowplugin
-  VERSION 0.2.2
+  VERSION 0.3.0
   DESCRIPTION "a plugin add a Flow View to digikam"
   HOMEPAGE_URL https://github.com/cathaysia/digikamflowplugin
 )

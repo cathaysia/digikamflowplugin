@@ -6,7 +6,7 @@
 #include <QResizeEvent>
 
 class AspectRatioPixmapLabel : public QLabel {
-    Q_OBJECT
+    Q_OBJECT;
 public:
     explicit AspectRatioPixmapLabel(QWidget *parent = 0);
     QSize   sizeHint() const override;

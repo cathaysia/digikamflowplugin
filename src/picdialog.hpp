@@ -7,7 +7,8 @@
 using namespace Digikam;
 
 class PicDialog : public QDialog {
-    Q_OBJECT
+    Q_OBJECT;
+
 public:
     PicDialog(QWidget* parent = nullptr);
     ~PicDialog();
