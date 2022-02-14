@@ -74,10 +74,11 @@ void FlowPlugin::setup(QObject* const parent) {
     auto openthis = setting->addAction(tr("Open view"), this, &FlowPlugin::flowView);
     // ReferenceWidth setting
     auto widthAction = setting->addAction(tr("Set reference width"), [this]() {
-        bool ok = false;
-        auto result =
-            QInputDialog::getDouble(nullptr, tr("Input reference width"), tr("Reference Width"), 300, -1, 9999, 1, &ok);
+        bool ok     = false;
+        auto result = QInputDialog::getDouble(
+            nullptr, tr("Input reference width"), tr("Reference Width"), refWidth_, -1, 9999, 1, &ok);
         if(!ok) return;
+        this->refWidth_ = result;
         emit widthChanged(result);
     });
     widthAction->setWhatsThis(tr("Set refenence width, picture will use it as it's width <b>as much as possible</b>."));
@@ -128,6 +129,7 @@ void FlowPlugin::setup(QObject* const parent) {
 void FlowPlugin::flowView() {
     auto* dialog = new PicDialog;
     dialog->setStyle(style_);
+    dialog->setReferenceWidth(refWidth_);
 
     connect(this, &FlowPlugin::spacingChanged, dialog, &PicDialog::setSpacing);
     connect(this, &FlowPlugin::widthChanged, dialog, &PicDialog::setReferenceWidth);

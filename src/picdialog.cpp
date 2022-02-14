@@ -48,8 +48,8 @@ PicDialog::~PicDialog() {
 }
 
 void PicDialog::setReferenceWidth(qreal width) {
-    layout_->setRefWidth(referenceWidth_);
     referenceWidth_ = width;
+    layout_->setRefWidth(referenceWidth_);
 }
 
 qreal PicDialog::referenceWidth() {

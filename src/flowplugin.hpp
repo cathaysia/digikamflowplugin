@@ -42,6 +42,7 @@ protected:
 
 private:
     // using QThreadPool loader but not digikam
+    qreal                    refWidth_ = 300;
     bool                     useCustomLoader_;
     Digikam::DInfoInterface* iface  = nullptr;
     Z::FlowLayout::Style     style_ = Z::FlowLayout::Style::Col;
