@@ -32,6 +32,7 @@ signals:
     void signalPixLoaded(QPixmap const&);
 
 private:
+    QAtomicInt         stop_;
     QWidget*           box_;
     Z::FlowLayout*     layout_;
     QThreadPool*       pool_;

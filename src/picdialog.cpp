@@ -6,8 +6,21 @@
 #include <QScrollArea>
 #include <QUrl>
 
+#define INSERT_CANCEL_POINT                   \
+    do {                                      \
+        if(stop_) {                           \
+            qDebug() << "Cancel load images"; \
+            return;                           \
+        }                                     \
+    } while(0)
+
 PicDialog::PicDialog(QWidget* parent)
-    : QDialog(parent), box_(new QWidget(this)), layout_(new Z::FlowLayout(box_)), pool_(nullptr), t_(nullptr) {
+    : QDialog(parent)
+    , stop_(false)
+    , box_(new QWidget(this))
+    , layout_(new Z::FlowLayout(box_))
+    , pool_(nullptr)
+    , t_(nullptr) {
 
     this->setAttribute(Qt::WA_DeleteOnClose, true);
     this->installEventFilter(this);
@@ -34,6 +47,7 @@ PicDialog::PicDialog(QWidget* parent)
 }
 
 PicDialog::~PicDialog() {
+    this->stop_ = true;
     if(pool_) { pool_->waitForDone(1000); }
 
     if(t_) {
@@ -72,6 +86,7 @@ void PicDialog::add(LoadingDescription const& desc, DImg const& img) {
 
 void PicDialog::add(const QPixmap& pix) {
     if(pix.isNull()) return;
+    INSERT_CANCEL_POINT;
     auto* lbl = new QLabel;
     lbl->installEventFilter(this);
     lbl->setPixmap(pix);
@@ -97,17 +112,22 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
 }
 
 void PicDialog::load(const QUrl& url, bool loadByPool) {
+    INSERT_CANCEL_POINT;
     if(loadByPool) {
         if(!pool_) {
             static QThreadPool pool;
             pool_ = &pool;
         }
         auto task = [this](QUrl const& url) {
-            QPixmap pix = DImg(url.toLocalFile()).convertToPixmap();
+            INSERT_CANCEL_POINT;
+            DImg dimg(url.toLocalFile());
+            INSERT_CANCEL_POINT;
+            QPixmap pix = dimg.convertToPixmap();
             if(pix.isNull()) {
                 qDebug() << "Image " << url.toLocalFile() << " load failed";
                 return;
             }
+            INSERT_CANCEL_POINT;
             if((pix.width() * pix.height() > 1920 * 1080))
                 pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
@@ -120,10 +140,15 @@ void PicDialog::load(const QUrl& url, bool loadByPool) {
         static PreviewLoadThread t;
         t_ = &t;
     }
-    const DImg& img = t_->loadHighQualitySynchronously(url.toLocalFile());
-    if(img.isNull()) {
+    const DImg& dimg = t_->loadHighQualitySynchronously(url.toLocalFile());
+    if(dimg.isNull()) {
         qDebug() << "DImg " << url.toLocalFile() << " load failed";
         return;
     }
-    this->add(img.convertToPixmap());
+    INSERT_CANCEL_POINT;
+    QPixmap img = dimg.convertToPixmap();
+    INSERT_CANCEL_POINT;
+    if((img.width() * img.height() > 1920 * 1080))
+        img = img.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+    this->add(img);
 }
