@@ -24,6 +24,7 @@ public:
 
 public slots:
     // add picture to layout
+    void add(LoadingDescription const& desc, DImg const& img);
     void add(const QPixmap&);
 
 signals:
@@ -31,7 +32,8 @@ signals:
     void signalPixLoaded(QPixmap const&);
 
 private:
-    QWidget*       box_;
-    Z::FlowLayout* layout_;
-    QThreadPool*   pool_;
+    QWidget*           box_;
+    Z::FlowLayout*     layout_;
+    QThreadPool*       pool_;
+    PreviewLoadThread* t_;
 };

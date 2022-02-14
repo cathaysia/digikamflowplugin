@@ -7,7 +7,7 @@
 #include <QUrl>
 
 PicDialog::PicDialog(QWidget* parent)
-    : QDialog(parent), box_(new QWidget(this)), layout_(new Z::FlowLayout(box_)), pool_(new QThreadPool) {
+    : QDialog(parent), box_(new QWidget(this)), layout_(new Z::FlowLayout(box_)), pool_(nullptr), t_(nullptr) {
 
     this->setAttribute(Qt::WA_DeleteOnClose, true);
     this->installEventFilter(this);
@@ -23,12 +23,23 @@ PicDialog::PicDialog(QWidget* parent)
 
     // Set ReferenceWidth
     layout_->setRefWidth(300);
-    connect(this, &PicDialog::signalPixLoaded, this, &PicDialog::add, Qt::QueuedConnection);
+    // clang-format off
+    connect(this, &PicDialog::signalPixLoaded, this
+            , QOverload<QPixmap const&>::of(&PicDialog::add)
+            , Qt::QueuedConnection);
+    connect(t_, &PreviewLoadThread::signalImageLoaded, this
+            , QOverload<LoadingDescription const&, DImg const&>::of(&PicDialog::add)
+            , Qt::QueuedConnection);
+    // clang-format on
 }
 
 PicDialog::~PicDialog() {
-    pool_->waitForDone(1000);
-    delete pool_;
+    if(pool_) { pool_->waitForDone(1000); }
+
+    if(t_) {
+        t_->stop();
+        t_->wait();
+    }
 }
 
 void PicDialog::setReferenceWidth(qreal width) {
@@ -49,6 +60,14 @@ int PicDialog::spacing() {
 
 void PicDialog::setStyle(Z::FlowLayout::Style sty) {
     layout_->setStyle(sty);
+}
+
+void PicDialog::add(LoadingDescription const& desc, DImg const& img) {
+    if(img.isNull()) {
+        qDebug() << "DImg " << desc.filePath << " load failed";
+        return;
+    }
+    this->add(img.convertToPixmap());
 }
 
 void PicDialog::add(const QPixmap& pix) {
@@ -78,17 +97,33 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
 }
 
 void PicDialog::load(const QUrl& url, bool loadByPool) {
-    Q_UNUSED(loadByPool);
-    auto task = [this](QUrl const& url) {
-        QPixmap pix = DImg(url.toLocalFile()).convertToPixmap();
-        if(pix.isNull()) {
-            qDebug() << "Image " << url.toLocalFile() << " load failed";
-            return;
+    if(loadByPool) {
+        if(!pool_) {
+            static QThreadPool pool;
+            pool_ = &pool;
         }
-        if((pix.width() * pix.height() > 1920 * 1080))
-            pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        auto task = [this](QUrl const& url) {
+            QPixmap pix = DImg(url.toLocalFile()).convertToPixmap();
+            if(pix.isNull()) {
+                qDebug() << "Image " << url.toLocalFile() << " load failed";
+                return;
+            }
+            if((pix.width() * pix.height() > 1920 * 1080))
+                pix = pix.scaled(1920, 1080, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-        emit this->signalPixLoaded(pix);
-    };
-    pool_->start(std::bind(task, url));
+            emit this->signalPixLoaded(pix);
+        };
+        pool_->start(std::bind(task, url));
+        return;
+    }
+    if(!t_) {
+        static PreviewLoadThread t;
+        t_ = &t;
+    }
+    const DImg& img = t_->loadHighQualitySynchronously(url.toLocalFile());
+    if(img.isNull()) {
+        qDebug() << "DImg " << url.toLocalFile() << " load failed";
+        return;
+    }
+    this->add(img.convertToPixmap());
 }
