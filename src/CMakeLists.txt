@@ -10,8 +10,11 @@ add_library(
   MODULE
   flowplugin.cpp
   picdialog.cpp
+  aspectratiopixmaplabel.cpp
+
   flowplugin.hpp
   picdialog.hpp
+  aspectratiopixmaplabel.hpp
 )
 
 set_target_properties(

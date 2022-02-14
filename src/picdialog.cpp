@@ -6,6 +6,8 @@
 #include <QScrollArea>
 #include <QUrl>
 
+#include "aspectratiopixmaplabel.hpp"
+
 #define INSERT_CANCEL_POINT                   \
     do {                                      \
         if(stop_) {                           \
@@ -74,6 +76,9 @@ int PicDialog::spacing() {
 
 void PicDialog::setStyle(Z::FlowLayout::Style sty) {
     layout_->setStyle(sty);
+    qDebug() << "set style";
+    qApp->postEvent(this, new QResizeEvent(this->size(), this->size()));
+    QResizeEvent e(this->size(), this->size());
 }
 
 void PicDialog::add(LoadingDescription const& desc, DImg const& dimg) {
@@ -94,11 +99,19 @@ void PicDialog::add(const QPixmap& pix) {
     qApp->processEvents();
     if(pix.isNull()) return;
     INSERT_CANCEL_POINT;
-    auto* lbl = new QLabel;
-    lbl->installEventFilter(this);
+    auto* lbl = new AspectRatioPixmapLabel;
     lbl->setPixmap(pix);
-    lbl->setScaledContents(true);
     layout_->addWidget(lbl);
+    this->adjust();
+}
+
+void PicDialog::adjust() {
+    for(int i = 0; i < layout_->count(); ++i) {
+        // adjust images's size
+        auto lbl = qobject_cast<AspectRatioPixmapLabel*>(layout_->itemAt(i)->widget());
+        if(!lbl) continue;
+        lbl->adjust();
+    }
 }
 
 // Update layout after the size of dialog has changed
@@ -108,11 +121,12 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
     if(dialog) {
         if(event->type() == QEvent::Resize) {
             box_->resize(dialog->width(), layout_->innerHeight());
-            return true;
+            this->adjust();
+            return false;
         }
         if(event->type() == QEvent::Close) {
             emit this->signalOnClose();
-            return true;
+            return false;
         }
     }
     return false;
