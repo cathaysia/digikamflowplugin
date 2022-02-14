@@ -7,12 +7,7 @@
 #include <QUrl>
 
 PicDialog::PicDialog(QWidget* parent)
-    : QDialog(parent)
-    , spacing_(-1)
-    , referenceWidth_(300)
-    , box_(new QWidget(this))
-    , layout_(new Z::FlowLayout(box_))
-    , pool_(new QThreadPool) {
+    : QDialog(parent), box_(new QWidget(this)), layout_(new Z::FlowLayout(box_)), pool_(new QThreadPool) {
 
     this->setAttribute(Qt::WA_DeleteOnClose, true);
     this->installEventFilter(this);
@@ -26,10 +21,8 @@ PicDialog::PicDialog(QWidget* parent)
 
     box_->setLayout(layout_);
 
-    layout_->setSpacing(spacing_);
-
     // Set ReferenceWidth
-    layout_->setRefWidth(referenceWidth_);
+    layout_->setRefWidth(300);
     connect(this, &PicDialog::signalPixLoaded, this, &PicDialog::add, Qt::QueuedConnection);
 }
 
@@ -39,12 +32,11 @@ PicDialog::~PicDialog() {
 }
 
 void PicDialog::setReferenceWidth(qreal width) {
-    referenceWidth_ = width;
-    layout_->setRefWidth(referenceWidth_);
+    layout_->setRefWidth(width);
 }
 
 qreal PicDialog::referenceWidth() {
-    return this->referenceWidth_;
+    return layout_->refWidth();
 }
 
 void PicDialog::setSpacing(int spacing) {
@@ -52,7 +44,7 @@ void PicDialog::setSpacing(int spacing) {
 }
 
 int PicDialog::spacing() {
-    return this->spacing_;
+    return layout_->spacing();
 }
 
 void PicDialog::setStyle(Z::FlowLayout::Style sty) {
@@ -82,27 +74,11 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
             return true;
         }
     }
-    // eventFilter for QLabel
-    // auto lbl = qobject_cast<QLabel*>(watched);
-    // if(lbl) {
-    //     if(event->type() == QEvent::Resize) {
-    //         // TODO: auto scale pixmap
-    //         // lbl->setPixmap(lbl->pixmap(Qt::ReturnByValue).scaled(lbl->size(), Qt::KeepAspectRatio));
-    //         return false;
-    //     }
-    // }
     return false;
 }
 
 void PicDialog::load(const QUrl& url, bool loadByPool) {
-    if(!loadByPool) {
-        // BUG: close dialog before image not loaded fully will cause digikam core
-        // the reason is that PreviewLoadThread to slow when it cancel it task
-        // So I want use t->load ..., but t->load can load one picture for every album
-        DImg const& img = PreviewLoadThread::loadFastButLargeSynchronously(url.toLocalFile(), 1920 * 1080);
-        emit this->signalPixLoaded(img.convertToPixmap());
-        return;
-    }
+    Q_UNUSED(loadByPool);
     auto task = [this](QUrl const& url) {
         QPixmap pix = DImg(url.toLocalFile()).convertToPixmap();
         if(pix.isNull()) {

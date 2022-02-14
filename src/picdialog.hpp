@@ -9,9 +9,6 @@ using namespace Digikam;
 class PicDialog : public QDialog {
     Q_OBJECT
 public:
-    Q_PROPERTY(int spacing_ READ spacing WRITE setSpacing);
-    Q_PROPERTY(qreal referenceWidth_ READ referenceWidth WRITE setReferenceWidth);
-
     PicDialog(QWidget* parent = nullptr);
     ~PicDialog();
 
@@ -34,8 +31,6 @@ signals:
     void signalPixLoaded(QPixmap const&);
 
 private:
-    int            spacing_;
-    qreal          referenceWidth_;
     QWidget*       box_;
     Z::FlowLayout* layout_;
     QThreadPool*   pool_;
