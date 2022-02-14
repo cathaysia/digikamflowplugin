@@ -21,8 +21,10 @@ This project depends these components (Fedora):
 To build and install this, please run:
 
 ```bash
-cmake -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build
-sudo cmake --install build --prefix=/usr
+git checkout https://github.com/cathaysia/digikamflowplugin.git
+git submodule update --init
+./bootstrap.sh
+cd build
+sudo make install/fast
 ```
 
