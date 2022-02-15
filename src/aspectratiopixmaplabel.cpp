@@ -52,3 +52,9 @@ QPixmap AspectRatioPixmapLabel::scaledPixmap() const {
 void AspectRatioPixmapLabel::adjust() {
     if(!pix_.isNull()) QLabel::setPixmap(scaledPixmap());
 }
+int AspectRatioPixmapLabel::heightForWidth(int w) const {
+    // height = width*(y/x)
+    // ry/rx=y/x ==> ry=rx*y/x
+    // height = width * sizeHint().rheight() / sizeHint().rwidth();
+    return w * sizeHint().rheight() / sizeHint().rwidth();
+}
