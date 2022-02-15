@@ -7,39 +7,37 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(
-  digikamflowplugin
-  VERSION 0.3.0
-  DESCRIPTION "a plugin add a Flow View to digikam"
-  HOMEPAGE_URL https://github.com/cathaysia/digikamflowplugin
-)
+    digikamflowplugin
+    VERSION 0.3.0
+    DESCRIPTION "a plugin add a Flow View to digikam"
+    HOMEPAGE_URL https://github.com/cathaysia/digikamflowplugin)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
-include(FeatureSummary)
-
 # Use common cmake macro from cmake/modules/ to install unistall plugins.
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
-set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake/modules ${CMAKE_MODULE_PATH})
+include(FeatureSummary)
 include(MacroInstall)
 
-###
+#
 
 add_subdirectory(extern/QtFlowLayout)
 include_directories(extern/QtFlowLayout)
 add_subdirectory(src)
 
-###
+#
 
 # To plug install and uninstall plugin macro.
 
-MACRO_ADD_UNINSTALL_TARGET()
+macro_add_uninstall_target()
 
-###
+#
 
 include(InstallRequiredSystemLibraries)
 set(CPACK_GENERATOR "TGZ;RPM")
-set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_BINARY_DIR}" "${CMAKE_PROJECT_NAME}" ALL .)
+set(CPACK_INSTALL_CMAKE_PROJECTS "${CMAKE_BINARY_DIR}" "${CMAKE_PROJECT_NAME}"
+                                 ALL .)
 set(CPACK_PACKAGE_DIRECTORY "${CMAKE_BINARY_DIR}/pack")
 
 set(CPACK_PACKAGE_VENDOR "cathaysia")
@@ -48,7 +46,8 @@ set(CPACK_PROJECT_URL "${CMAKE_PROJECT_HOMEPAGE_URL}")
 set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
-set(CMAKE_PACKAGE_VERSION ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
+set(CMAKE_PACKAGE_VERSION
+    ${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH})
 set(CPACK_PACKAGING_INSTALL_PREFIX "/usr/")
 set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
 set(CPACK_STRIP_FILES ON)
