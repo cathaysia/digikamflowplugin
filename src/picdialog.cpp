@@ -31,6 +31,8 @@
         }                                     \
     } while(0)
 
+#define POST_RESIZE_EVENT(obj) (qApp->postEvent(obj, new QResizeEvent(this->size(), this->size())))
+
 PicDialog::PicDialog(QWidget* parent)
     : QDialog(parent)
     , stop_(false)
@@ -75,6 +77,7 @@ PicDialog::~PicDialog() {
 
 void PicDialog::setReferenceWidth(qreal width) {
     layout_->setRefWidth(width);
+    POST_RESIZE_EVENT(this);
 }
 
 qreal PicDialog::referenceWidth() {
@@ -83,6 +86,7 @@ qreal PicDialog::referenceWidth() {
 
 void PicDialog::setSpacing(int spacing) {
     layout_->setSpacing(spacing);
+    POST_RESIZE_EVENT(this);
 }
 
 int PicDialog::spacing() {
@@ -92,7 +96,7 @@ int PicDialog::spacing() {
 void PicDialog::setStyle(Z::FlowLayout::Style sty) {
     layout_->setStyle(sty);
     qDebug() << "set style";
-    qApp->postEvent(this, new QResizeEvent(this->size(), this->size()));
+    POST_RESIZE_EVENT(this);
 }
 
 void PicDialog::add(LoadingDescription const& desc, DImg const& dimg) {
@@ -116,7 +120,7 @@ void PicDialog::add(const QPixmap& pix) {
     auto* lbl = new AspectRatioPixmapLabel;
     lbl->setPixmap(pix);
     layout_->addWidget(lbl);
-    qApp->postEvent(this, new QResizeEvent(this->size(), this->size()));
+    POST_RESIZE_EVENT(this);
 }
 
 // Update layout after the size of dialog has changed
