@@ -13,8 +13,7 @@
  *
  * ============================================================ */
 
-#ifndef DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN
-#define DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN
+#pragma once
 
 #include <digikam/dplugingeneric.h>
 #include <flowlayout.h>
@@ -24,6 +23,8 @@
 using namespace Digikam;
 
 namespace Cathaysia {
+
+class PlugSettings;
 
 class FlowPlugin : public DPluginGeneric {
     Q_OBJECT;
@@ -42,23 +43,12 @@ public:
 
     void setup(QObject* const) override;
 
-signals:
-    void refWidthChanged(qreal width);
-    void spacingChanged(int spacing);
-    void signalStyleChanged(Z::FlowLayout::Style);
-
 protected:
     void flowView();
 
 private:
-    // using QThreadPool loader but not digikam
-    int                      spacing_;
-    qreal                    refWidth_;
-    bool                     useCustomLoader_;
     Digikam::DInfoInterface* iface_;
-    Z::FlowLayout::Style     style_;
+    PlugSettings*            settings_;
 };
 
 }    // namespace Cathaysia
-
-#endif    // DIGIKAMFLOWPLUGIN_DIGIKAMFLOWPLUGIN

@@ -34,6 +34,7 @@ set(PicFlowView_generic_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/flowplugin.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/picdialog.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/aspectratiopixmaplabel.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/plugsettings.cpp
     # For i18n Support...
     # ${i18n_QRC_SRCS}
     # ${i18n_QM}
