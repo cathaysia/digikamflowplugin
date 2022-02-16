@@ -23,7 +23,8 @@ set_package_properties(
 
 include(FindThreads REQUIRED)
 
-# For i18n support... include(i18nUtils)
+# For i18n support...
+# include(i18nUtils)
 
 include_directories(
     $<TARGET_PROPERTY:Digikam::digikamcore,INTERFACE_INCLUDE_DIRECTORIES>/digikam
