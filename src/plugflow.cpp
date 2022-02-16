@@ -17,19 +17,17 @@
 #include <QInputDialog>
 #include <QMenu>
 
-#include "plugflow.hpp"
 #include "picdialog.hpp"
+#include "plugflow.hpp"
 #include "plugsettings.hpp"
 
 namespace Cathaysia {
 
-FlowPlugin::FlowPlugin(QObject* const parent)
-    : DPluginGeneric(parent)
-    , iface_(nullptr)
-    , settings_(new PlugSettings) { }
+FlowPlugin::FlowPlugin(QObject* const parent) : DPluginGeneric(parent), iface_(nullptr), settings_(new PlugSettings) { }
 
 FlowPlugin::~FlowPlugin() noexcept {
-    delete settings_;
+    // BUG: this code will cause digikam core
+    // delete settings_;
 }
 
 QString FlowPlugin::name() const {
