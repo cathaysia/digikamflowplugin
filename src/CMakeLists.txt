@@ -7,11 +7,13 @@
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
 
+# set QT_VERSION_MAJOR
+find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+
 find_package(
-    Qt5 NO_MODULE
+    Qt${QT_VERSION_MAJOR} NO_MODULE
     COMPONENTS Core Widgets Gui
     REQUIRED)
-
 find_package(DigikamCore CONFIG REQUIRED)
 
 set_package_properties(
@@ -42,7 +44,8 @@ set_target_properties(Generic_PicFlowView_Plugin PROPERTIES PREFIX "")
 
 target_link_libraries(
     Generic_PicFlowView_Plugin
-    PRIVATE Digikam::digikamcore Qt5::Core Qt5::Widgets Qt5::Gui
+    PRIVATE Digikam::digikamcore Qt${QT_VERSION_MAJOR}::Core
+            Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Gui
             Threads::Threads FlowLayout)
 
 macro_add_plugin_install_target(Generic_PicFlowView_Plugin generic)
