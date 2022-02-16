@@ -17,7 +17,7 @@
 #include <QInputDialog>
 #include <QMenu>
 
-#include "flowplugin.hpp"
+#include "plugflow.hpp"
 #include "picdialog.hpp"
 #include "plugsettings.hpp"
 
@@ -25,11 +25,7 @@ namespace Cathaysia {
 
 FlowPlugin::FlowPlugin(QObject* const parent)
     : DPluginGeneric(parent)
-    // , spacing_(2)
-    // , refWidth_(300)
-    // , useCustomLoader_(true)
     , iface_(nullptr)
-    // , style_(Z::FlowLayout::Style::Col)
     , settings_(new PlugSettings) { }
 
 FlowPlugin::~FlowPlugin() noexcept {
