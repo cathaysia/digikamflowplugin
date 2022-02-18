@@ -2,12 +2,15 @@
 
 #include <QComboBox>
 #include <QLabel>
+#include <QMetaEnum>
+#include <QSettings>
 #include <QSpinBox>
 
 namespace Cathaysia {
 
-// TODO: data persistence
-PlugSettings::PlugSettings(QWidget* const parent) : DPluginDialog(parent, "FlowPlugSettings") {
+PlugSettings::PlugSettings(QWidget* const parent)
+    : DPluginDialog(parent, "FlowPlugSettings")
+    , settings_(new QSettings("cathaysia.digikam.flowview", QSettings::IniFormat, this)) {
     setLayout(new QVBoxLayout(this));
 
     layout()->addWidget(getStyleOption());
@@ -24,16 +27,8 @@ QWidget* PlugSettings::getStyleOption() {
     styleBox->addItems(list);
     styleBox->setCurrentText(tr("Col"));
     connect(styleBox, &QComboBox::currentTextChanged, [this](QString const& result) {
-        if(result == tr("Row")) {
-            this->style_ = Z::FlowLayout::Style::Row;
-            emit this->signalStyleChanged(style_);
-        } else if(result == tr("Square")) {
-            this->style_ = Z::FlowLayout::Style::Square;
-            emit this->signalStyleChanged(style_);
-        } else if(result == tr("Col")) {
-            this->style_ = Z::FlowLayout::Style::Col;
-            emit this->signalStyleChanged(style_);
-        }
+        settings_->setValue("style", result);
+        emit this->signalStyleChanged(this->style());
     });
     QLabel* lbl = new QLabel(tr("Style"), this);
     lbl->setBuddy(styleBox);
@@ -55,9 +50,9 @@ QWidget* PlugSettings::getLoaderOption() {
            "get profilt from digikam cache, but it should be less bugs"));
     connect(loaderBox, &QComboBox::currentTextChanged, [this](QString const& result) {
         if(result == tr("Custom Loader")) {
-            this->useCustomLoader_ = true;
+            settings_->setValue("useCustomLoader", true);
         } else if(result == tr("Digikam")) {
-            this->useCustomLoader_ = false;
+            settings_->setValue("useCustomLoader", false);
         }
     });
     QLabel* lbl = new QLabel(tr("Image Loader"), this);
@@ -73,10 +68,10 @@ QWidget* PlugSettings::getSpacingOption() {
     auto spinBox = new QSpinBox(this);
     spinBox->setMinimum(-1);
     spinBox->setMaximum(INT_MAX);
-    spinBox->setValue(spacing_);
+    spinBox->setValue(this->spacing());
     connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), [this](int i) {
-        this->spacing_ = i;
-        emit this->spacingChanged(i);
+        settings_->setValue("spacing", i);
+        emit this->spacingChanged(this->spacing());
     });
     QLabel* lbl = new QLabel(tr("Spacing"), this);
     lbl->setBuddy(spinBox);
@@ -92,11 +87,11 @@ QWidget* PlugSettings::getRefWidthOption() {
     auto spinBox = new QSpinBox(this);
     spinBox->setMinimum(1);
     spinBox->setMaximum(INT_MAX);
-    spinBox->setValue(refWidth_);
+    spinBox->setValue(this->referenceWidth());
     spinBox->setWhatsThis(tr("Set refenence width, picture will use it as it's width <b>as much as possible</b>."));
     connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), [this](int i) {
-        this->refWidth_ = i;
-        emit this->refWidthChanged(refWidth_);
+        settings_->setValue("refWidth", i);
+        emit this->refWidthChanged(this->referenceWidth());
     });
     QLabel* lbl = new QLabel(tr("Reference width"), this);
     lbl->setBuddy(spinBox);
@@ -107,15 +102,22 @@ QWidget* PlugSettings::getRefWidthOption() {
     return w;
 }
 bool PlugSettings::useCustomLoader() {
-    return useCustomLoader_;
+    return settings_->value("useCustomLoader", true).toBool();
 }
 int PlugSettings::spacing() {
-    return spacing_;
+    return settings_->value("spacing", 3).toInt();
 }
 int PlugSettings::referenceWidth() {
-    return refWidth_;
+    return settings_->value("refWidth", 300).toInt();
 }
 Z::FlowLayout::Style PlugSettings::style() {
-    return style_;
+    QString const& result = settings_->value("style", "Col").toString();
+    if(result == "Row") {
+        return Z::FlowLayout::Style::Row;
+    } else if(result == "Square") {
+        return Z::FlowLayout::Style::Square;
+    } else {
+        return Z::FlowLayout::Style::Col;
+    }
 }
 }    // namespace Cathaysia

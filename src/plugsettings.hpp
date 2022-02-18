@@ -5,6 +5,7 @@
 
 class QComboBox;
 class QSpinBox;
+class QSettings;
 
 namespace Cathaysia {
 using namespace Digikam;
@@ -31,9 +32,7 @@ signals:
     void signalStyleChanged(Z::FlowLayout::Style);
 
 private:
-    int                  spacing_         = 3;
-    qreal                refWidth_        = 300;
-    bool                 useCustomLoader_ = true;
-    Z::FlowLayout::Style style_           = Z::FlowLayout::Style::Col;
+    QSettings*           settings_;
+    Z::FlowLayout::Style style_ = Z::FlowLayout::Style::Col;
 };
 }    // namespace Cathaysia
