@@ -23,11 +23,13 @@
 
 namespace Cathaysia {
 
-FlowPlugin::FlowPlugin(QObject* const parent) : DPluginGeneric(parent), iface_(nullptr), settings_(new PlugSettings) { }
+FlowPlugin::FlowPlugin(QObject* const parent) : DPluginGeneric(parent), iface_(nullptr), settings_(nullptr) {
+    settings_ = new PlugSettings(nullptr);
+    settings_->setPlugin(this);
+}
 
 FlowPlugin::~FlowPlugin() noexcept {
-    // BUG: this code will cause digikam core
-    // delete settings_;
+    delete settings_;
 }
 
 QString FlowPlugin::name() const {

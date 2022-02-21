@@ -19,19 +19,29 @@
 #include <QMetaEnum>
 #include <QSettings>
 #include <QSpinBox>
+#include <QDialogButtonBox>
+#include <QPushButton>
 
 namespace Cathaysia {
 
 PlugSettings::PlugSettings(QWidget* const parent)
     : DPluginDialog(parent, "FlowPlugSettings")
     , settings_(new QSettings("cathaysia.digikam.flowview", QSettings::IniFormat, this)) {
+
+    m_buttons->addButton(QDialogButtonBox::Ok);
+    m_buttons->button(QDialogButtonBox::Ok)->setDefault(true);
+
     setLayout(new QVBoxLayout(this));
 
     layout()->addWidget(getStyleOption());
     layout()->addWidget(getSpacingOption());
     layout()->addWidget(getRefWidthOption());
     layout()->addWidget(getLoaderOption());
+    layout()->addWidget(m_buttons);
     resize(layout()->sizeHint());
+
+    connect(m_buttons->button(QDialogButtonBox::Ok), SIGNAL(clicked()),
+            this, SLOT(accept()));
 }
 
 QWidget* PlugSettings::getStyleOption() {
