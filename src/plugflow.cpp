@@ -29,7 +29,8 @@ FlowPlugin::FlowPlugin(QObject* const parent) : DPluginGeneric(parent), iface_(n
 }
 
 FlowPlugin::~FlowPlugin() noexcept {
-    delete settings_;
+    // BUG: this code makes digikam core dump
+    // delete settings_;
 }
 
 QString FlowPlugin::name() const {
