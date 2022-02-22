@@ -34,6 +34,10 @@ public:
     int                  referenceWidth();
     Z::FlowLayout::Style style();
 
+    // QDialog
+    void accept() override;
+    void reject() override;
+
 protected:
     QWidget* getStyleOption();
     QWidget* getLoaderOption();
@@ -46,7 +50,10 @@ signals:
     void signalStyleChanged(Z::FlowLayout::Style);
 
 private:
-    QSettings*           settings_;
-    Z::FlowLayout::Style style_ = Z::FlowLayout::Style::Col;
+    QSettings* settings_;
+    QString    style_;
+    bool       useCustomLoader_;
+    int        spacing_;
+    int        refWidth_;
 };
 }    // namespace Cathaysia
