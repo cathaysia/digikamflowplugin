@@ -29,10 +29,10 @@ class PlugSettings : public DPluginDialog {
 
 public:
     explicit PlugSettings(QWidget* const parent = nullptr);
-    bool                 useCustomLoader();
-    int                  spacing();
-    int                  referenceWidth();
-    Z::FlowLayout::Style style();
+    bool     useCustomLoader();
+    int      spacing();
+    int      referenceWidth();
+    Z::Style style();
 
     // QDialog
     void accept() override;
@@ -47,7 +47,7 @@ protected:
 signals:
     void refWidthChanged(qreal width);
     void spacingChanged(int spacing);
-    void signalStyleChanged(Z::FlowLayout::Style);
+    void signalStyleChanged(Z::Style);
 
 private:
     QSettings* settings_;

@@ -93,7 +93,7 @@ int PicDialog::spacing() {
     return layout_->spacing();
 }
 
-void PicDialog::setStyle(Z::FlowLayout::Style sty) {
+void PicDialog::setStyle(Z::Style sty) {
     layout_->setStyle(sty);
     qDebug() << "set style";
     POST_RESIZE_EVENT(this);

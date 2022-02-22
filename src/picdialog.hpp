@@ -36,7 +36,7 @@ public:
     bool eventFilter(QObject* watched, QEvent* event) override;
 
     void load(QUrl const& url, bool loadbyPool = false);
-    void setStyle(Z::FlowLayout::Style);
+    void setStyle(Z::Style);
 
 public slots:
     // add picture to layout

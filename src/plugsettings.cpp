@@ -199,13 +199,13 @@ int PlugSettings::spacing() {
 int PlugSettings::referenceWidth() {
     return refWidth_;
 }
-Z::FlowLayout::Style PlugSettings::style() {
+Z::Style PlugSettings::style() {
     if(style_ == "Row") {
-        return Z::FlowLayout::Style::Row;
+        return Z::Style::Row;
     } else if(style_ == "Square") {
-        return Z::FlowLayout::Style::Square;
+        return Z::Style::Square;
     } else {
-        return Z::FlowLayout::Style::Col;
+        return Z::Style::Col;
     }
 }
 }    // namespace Cathaysia
