@@ -17,7 +17,6 @@
 
 #include <QApplication>
 #include <QDebug>
-#include <cmath>
 
 inline double sizeFactor(QSize const &a) {
     if(a.height() == 0) return 0;
@@ -49,22 +48,13 @@ QPixmap AspectRatioPixmapLabel::scaledPixmap() const {
         return QPixmap::fromImage(res);
     }
     QImage const &res = pix_.copy(0, 0, pix_.width(), heightForWidth(pix_.width()));
-    // QImage const &res = pix_.scaled(this->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation)
-    //                         .copy(0, 0, size().width(), size().height());
     return QPixmap::fromImage(res);
 }
 
 void AspectRatioPixmapLabel::adjust() {
-    // setScaledContents(true);
-    // if((qreal)width() / height() == scaleFactor_) return;
-    // scaleFactor_ = (qreal)width() / height();
-    // if(this->hasScaledContents()) return;
-    // if(!pix_.isNull()) QLabel::setPixmap(scaledPixmap());
-    if(sizeFactor(size()) == scaleFactor_) {
-        qDebug() << "sizeFactor has not changed: " << sizeFactor(size());
-        return;
-    }
-    qDebug() << "scaleFactor Changed from " << scaleFactor_ << " to " << sizeFactor(size());
+    if(pix_.isNull()) return;
+    if(size().height() && (sizeFactor(size()) != scaleFactor_)) return;
+
     scaleFactor_ = sizeFactor(size());
     setPixmap(scaledPixmap());
 }
