@@ -29,12 +29,11 @@ public:
     QPixmap scaledPixmap() const;
     void    setPixmap(const QPixmap &pix);
     int     heightForWidth(int w) const override;
-    // overwrite these function
-    void setScaledContents(bool);
-    bool hasScaledContents() const;
+    int     widthForHeight(int h) const;
 
     void adjust();
 
 private:
+    qreal  scaleFactor_ = 0;
     QImage pix_;
 };

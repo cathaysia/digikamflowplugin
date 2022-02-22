@@ -132,6 +132,7 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
             box_->resize(dialog->width(), layout_->innerHeight());
             for(int i = 0; i < layout_->count(); ++i) {
                 // adjust images's size
+                layout_->setGeometry(layout_->geometry());
                 auto lbl = qobject_cast<AspectRatioPixmapLabel*>(layout_->itemAt(i)->widget());
                 if(!lbl) continue;
                 lbl->adjust();
