@@ -14,19 +14,21 @@
  * ============================================================ */
 #include "plugsettings.hpp"
 
+#include <QApplication>
 #include <QComboBox>
+#include <QDialogButtonBox>
 #include <QLabel>
 #include <QMetaEnum>
+#include <QPushButton>
 #include <QSettings>
 #include <QSpinBox>
-#include <QDialogButtonBox>
-#include <QPushButton>
+#include <QString>
 
 namespace Cathaysia {
 
 PlugSettings::PlugSettings(QWidget* const parent)
-    : DPluginDialog(parent, "FlowPlugSettings")
-    , settings_(new QSettings("cathaysia.digikam.flowview", QSettings::IniFormat, this)) {
+    : DPluginDialog(parent, QStringLiteral("FlowPlugSettings"))
+    , settings_(new QSettings(QStringLiteral("cathaysia.digikam.flowview"), qApp->applicationName(), this)) {
 
     m_buttons->addButton(QDialogButtonBox::Ok);
     m_buttons->button(QDialogButtonBox::Ok)->setDefault(true);
@@ -40,8 +42,7 @@ PlugSettings::PlugSettings(QWidget* const parent)
     layout()->addWidget(m_buttons);
     resize(layout()->sizeHint());
 
-    connect(m_buttons->button(QDialogButtonBox::Ok), SIGNAL(clicked()),
-            this, SLOT(accept()));
+    connect(m_buttons->button(QDialogButtonBox::Ok), SIGNAL(clicked()), this, SLOT(accept()));
 }
 
 QWidget* PlugSettings::getStyleOption() {
@@ -106,7 +107,6 @@ QWidget* PlugSettings::getSpacingOption() {
     return w;
 }
 
-// TODO: can pixture's width be zero?
 QWidget* PlugSettings::getRefWidthOption() {
     auto spinBox = new QSpinBox(this);
     spinBox->setMinimum(1);
