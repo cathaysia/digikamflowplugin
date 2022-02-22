@@ -42,7 +42,7 @@ PlugSettings::PlugSettings(QWidget* const parent)
     layout()->addWidget(m_buttons);
     resize(layout()->sizeHint());
 
-    connect(m_buttons->button(QDialogButtonBox::Ok), SIGNAL(clicked()), this, SLOT(accept()));
+    connect(m_buttons->button(QDialogButtonBox::Ok), &QPushButton::clicked, this, &PlugSettings::accept);
 }
 
 QWidget* PlugSettings::getStyleOption() {
