@@ -25,6 +25,7 @@ git checkout https://github.com/cathaysia/digikamflowplugin.git
 git submodule update --init
 ./bootstrap.sh
 cd build
+make
 sudo make install/fast
 ```
 
