@@ -30,6 +30,7 @@ public:
     void    setPixmap(const QPixmap &pix);
     int     heightForWidth(int w) const override;
     int     widthForHeight(int h) const;
+    void    mouseDoubleClickEvent(QMouseEvent *event) override;
 
     void adjust();
 

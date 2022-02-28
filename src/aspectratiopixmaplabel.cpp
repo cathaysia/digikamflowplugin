@@ -17,6 +17,8 @@
 
 #include <QApplication>
 #include <QDebug>
+#include <QDialog>
+#include <QHBoxLayout>
 
 inline double sizeFactor(QSize const &a) {
     if(a.height() == 0) return 0;
@@ -68,4 +70,16 @@ int AspectRatioPixmapLabel::heightForWidth(int w) const {
 int AspectRatioPixmapLabel::widthForHeight(int h) const {
     // rw/rh = w/h ==> w = rw/rh * h
     return h * sizeHint().width() / sizeHint().rheight();
+}
+void AspectRatioPixmapLabel::mouseDoubleClickEvent(QMouseEvent *event) {
+    auto dialog = new QDialog;
+    dialog->setAttribute(Qt::WidgetAttribute::WA_DeleteOnClose, true);
+    dialog->setLayout(new QHBoxLayout);
+
+    auto lbl = new QLabel(dialog);
+    lbl->setPixmap(QPixmap::fromImage(this->pix_));
+    lbl->setScaledContents(false);
+    dialog->layout()->addWidget(lbl);
+
+    dialog->showFullScreen();
 }
