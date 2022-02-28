@@ -14,8 +14,8 @@
  * ============================================================ */
 #pragma once
 
-#include <digikam/dplugindialog.h>
-#include <flowlayout.h>
+#include "dplugindialog.h"
+#include "flowlayout.h"
 
 class QComboBox;
 class QSpinBox;

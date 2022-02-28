@@ -15,8 +15,8 @@
 
 #pragma once
 
-#include <digikam/dplugingeneric.h>
-#include <flowlayout.h>
+#include "dplugingeneric.h"
+#include "flowlayout.h"
 
 #define DPLUGIN_IID "org.kde.digikam.plugin.generic.FlowView"
 
@@ -27,9 +27,9 @@ namespace Cathaysia {
 class PlugSettings;
 
 class FlowPlugin : public DPluginGeneric {
-    Q_OBJECT;
-    Q_PLUGIN_METADATA(IID DPLUGIN_IID);
-    Q_INTERFACES(Digikam::DPluginGeneric);
+    Q_OBJECT
+    Q_PLUGIN_METADATA(IID DPLUGIN_IID)
+    Q_INTERFACES(Digikam::DPluginGeneric)
 
 public:
     explicit FlowPlugin(QObject* const parent = nullptr);

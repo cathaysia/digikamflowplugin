@@ -13,11 +13,11 @@
  *
  * ============================================================ */
 
-#include <flowlayout.h>
+#include "flowlayout.h"
 #include <QDialog>
 #include <QThreadPool>
 
-#include <digikam/previewloadthread.h>
+#include "previewloadthread.h"
 
 using namespace Digikam;
 
