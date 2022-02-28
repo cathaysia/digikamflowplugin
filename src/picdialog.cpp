@@ -59,9 +59,6 @@ PicDialog::PicDialog(QWidget* parent)
     connect(this, &PicDialog::signalPixLoaded, this
             , QOverload<QPixmap const&>::of(&PicDialog::add)
             , Qt::QueuedConnection);
-    connect(t_, &PreviewLoadThread::signalImageLoaded, this
-            , QOverload<LoadingDescription const&, DImg const&>::of(&PicDialog::add)
-            , Qt::QueuedConnection);
     // clang-format on
 }
 
@@ -148,6 +145,12 @@ void PicDialog::load(const QUrl& url, bool loadByPool) {
         if(!t_) {
             static PreviewLoadThread t;
             t_ = &t;
+            // clang-format off
+            connect(t_, &PreviewLoadThread::signalImageLoaded, this
+                    , QOverload<LoadingDescription const&
+                    , DImg const&>::of(&PicDialog::add)
+                    , Qt::QueuedConnection);
+            // clang-format on
         }
         // t_->load(url.toLocalFile(), PreviewSettings::fastPreview(), 1920);
         const DImg& dimg = t_->loadFastSynchronously(url.toLocalFile(), 1920);
