@@ -31,6 +31,14 @@ QComboBox* loaderBox   = nullptr;
 QSpinBox*  spacingSpin = nullptr;
 QSpinBox*  refSpin     = nullptr;
 
+inline const QString strLoaderCustom() {
+    return QObject::tr("Custom Loader");
+}
+
+inline const QString strLoaderDigikam() {
+    return QObject::tr("Digikam Loader");
+}
+
 PlugSettings::PlugSettings(QWidget* const parent)
     : DPluginDialog(parent, QStringLiteral("FlowPlugSettings"))
     , settings_(new QSettings(QStringLiteral("cathaysia.digikam.flowview"), qApp->applicationName(), this))
@@ -80,9 +88,9 @@ void PlugSettings::reject() {
     // reload setting-widget's value
     styleBox->setCurrentText(style_);
 
-    if(useCustomLoader_) loaderBox->setCurrentText("Custom Loader");
+    if(useCustomLoader_) loaderBox->setCurrentText(strLoaderCustom());
     else
-        loaderBox->setCurrentText("Digikam");
+        loaderBox->setCurrentText(strLoaderDigikam());
 
     spacingSpin->setValue(spacing_);
     refSpin->setValue(refWidth_);
@@ -114,19 +122,21 @@ QWidget* PlugSettings::getStyleOption() {
 QWidget* PlugSettings::getLoaderOption() {
     loaderBox = new QComboBox(this);
     QStringList list;
-    list << tr("Custom Loader") << tr("Digikam Loader");
+    list << strLoaderCustom() << strLoaderDigikam();
     loaderBox->addItems(list);
-    loaderBox->setCurrentText(tr("Custom Loader"));
+
+    if(useCustomLoader()) loaderBox->setCurrentText(strLoaderCustom());
+    else
+        loaderBox->setCurrentText(strLoaderDigikam());
+
     loaderBox->setWhatsThis(
         tr("Custom Loader will cause this plugin can not"
            "get profilt from digikam cache, but it should be less bugs"));
 
     connect(loaderBox, &QComboBox::currentTextChanged, [this](QString const& result) {
-        if(result == tr("Custom Loader")) {
+        if(result == strLoaderDigikam()) this->useCustomLoader_ = false;
+        else
             this->useCustomLoader_ = true;
-        } else if(result == tr("Digikam")) {
-            this->useCustomLoader_ = false;
-        }
     });
 
     QLabel* lbl = new QLabel(tr("Image Loader"), this);
@@ -142,7 +152,7 @@ QWidget* PlugSettings::getSpacingOption() {
     spacingSpin = new QSpinBox(this);
     spacingSpin->setMinimum(-1);
     spacingSpin->setMaximum(INT_MAX);
-    spacingSpin->setValue(this->spacing());
+    spacingSpin->setValue(spacing());
     connect(spacingSpin, QOverload<int>::of(&QSpinBox::valueChanged), [this](int i) {
         this->spacing_ = i;
         emit this->spacingChanged(this->spacing());
