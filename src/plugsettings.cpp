@@ -26,6 +26,19 @@
 
 namespace Cathaysia {
 
+QComboBox* styleBox    = nullptr;
+QComboBox* loaderBox   = nullptr;
+QSpinBox*  spacingSpin = nullptr;
+QSpinBox*  refSpin     = nullptr;
+
+inline const QString strLoaderCustom() {
+    return QObject::tr("Custom Loader");
+}
+
+inline const QString strLoaderDigikam() {
+    return QObject::tr("Digikam Loader");
+}
+
 PlugSettings::PlugSettings(QWidget* const parent)
     : DPluginDialog(parent, QStringLiteral("FlowPlugSettings"))
     , settings_(new QSettings(QStringLiteral("cathaysia.digikam.flowview"), qApp->applicationName(), this))
@@ -72,7 +85,15 @@ void PlugSettings::reject() {
     spacing_         = settings_->value("spacing", 3).toInt();
     useCustomLoader_ = settings_->value("useCustomLoader", true).toBool();
     refWidth_        = settings_->value("refWidth", 300).toInt();
-    // TODO: reload setting-widget's value
+    // reload setting-widget's value
+    styleBox->setCurrentText(style_);
+
+    if(useCustomLoader_) loaderBox->setCurrentText(strLoaderCustom());
+    else
+        loaderBox->setCurrentText(strLoaderDigikam());
+
+    spacingSpin->setValue(spacing_);
+    refSpin->setValue(refWidth_);
 
     emit spacingChanged(spacing());
     emit signalStyleChanged(style());
@@ -81,7 +102,7 @@ void PlugSettings::reject() {
 }
 
 QWidget* PlugSettings::getStyleOption() {
-    auto        styleBox = new QComboBox(this);
+    styleBox = new QComboBox(this);
     QStringList list;
     list << tr("Row") << tr("Col") << tr("Square");
     styleBox->addItems(list);
@@ -91,16 +112,6 @@ QWidget* PlugSettings::getStyleOption() {
         this->style_ = result;
         emit this->signalStyleChanged(this->style());
     });
-
-    // connect(this, &PlugSettings::signalStyleChanged, [&](Z::Style style) {
-    //     if(this->style() == Z::Style::Row) {
-    //         styleBox->setCurrentText("Row");
-    //     } else if(this->style() == Z::Style::Square) {
-    //         styleBox->setCurrentText("Square");
-    //     } else {
-    //         styleBox->setCurrentText("Col");
-    //     }
-    // });
 
     QLabel* lbl = new QLabel(tr("Style"), this);
     lbl->setBuddy(styleBox);
@@ -112,30 +123,24 @@ QWidget* PlugSettings::getStyleOption() {
 }
 
 QWidget* PlugSettings::getLoaderOption() {
-    auto        loaderBox = new QComboBox(this);
+    loaderBox = new QComboBox(this);
     QStringList list;
-    list << tr("Custom Loader") << tr("Digikam Loader");
+    list << strLoaderCustom() << strLoaderDigikam();
     loaderBox->addItems(list);
-    loaderBox->setCurrentText(tr("Custom Loader"));
+
+    if(useCustomLoader()) loaderBox->setCurrentText(strLoaderCustom());
+    else
+        loaderBox->setCurrentText(strLoaderDigikam());
+
     loaderBox->setWhatsThis(
         tr("Custom Loader will cause this plugin can not"
            "get profilt from digikam cache, but it should be less bugs"));
 
     connect(loaderBox, &QComboBox::currentTextChanged, [this](QString const& result) {
-        if(result == tr("Custom Loader")) {
+        if(result == strLoaderDigikam()) this->useCustomLoader_ = false;
+        else
             this->useCustomLoader_ = true;
-        } else if(result == tr("Digikam")) {
-            this->useCustomLoader_ = false;
-        }
     });
-
-    // connect(this, &PlugSettings::signalLoaderChanged, [&](bool useCustomLoader) {
-    //     if(this->useCustomLoader()) {
-    //         loaderBox->setCurrentText("Custom Loader");
-    //     } else {
-    //         loaderBox->setCurrentText("Digikam Loader");
-    //     }
-    // });
 
     QLabel* lbl = new QLabel(tr("Image Loader"), this);
     lbl->setBuddy(loaderBox);
@@ -147,11 +152,11 @@ QWidget* PlugSettings::getLoaderOption() {
 };
 
 QWidget* PlugSettings::getSpacingOption() {
-    auto spinBox = new QSpinBox(this);
-    spinBox->setMinimum(-1);
-    spinBox->setMaximum(INT_MAX);
-    spinBox->setValue(this->spacing());
-    connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), [this](int i) {
+    spacingSpin = new QSpinBox(this);
+    spacingSpin->setMinimum(-1);
+    spacingSpin->setMaximum(INT_MAX);
+    spacingSpin->setValue(spacing());
+    connect(spacingSpin, QOverload<int>::of(&QSpinBox::valueChanged), [this](int i) {
         this->spacing_ = i;
         emit this->spacingChanged(this->spacing());
     });
@@ -160,34 +165,31 @@ QWidget* PlugSettings::getSpacingOption() {
     //     spinBox->setValue(this->spacing());
     // });
     QLabel* lbl = new QLabel(tr("Spacing"), this);
-    lbl->setBuddy(spinBox);
+    lbl->setBuddy(spacingSpin);
     QWidget* w = new QWidget(this);
     w->setLayout(new QHBoxLayout(this));
     w->layout()->addWidget(lbl);
-    w->layout()->addWidget(spinBox);
+    w->layout()->addWidget(spacingSpin);
     return w;
 }
 
 QWidget* PlugSettings::getRefWidthOption() {
-    auto spinBox = new QSpinBox(this);
-    spinBox->setMinimum(1);
-    spinBox->setMaximum(INT_MAX);
-    spinBox->setValue(this->referenceWidth());
-    spinBox->setWhatsThis(tr("Set refenence width, picture will use it as it's width <b>as much as possible</b>."));
-    connect(spinBox, QOverload<int>::of(&QSpinBox::valueChanged), [this](int i) {
+    refSpin = new QSpinBox(this);
+    refSpin->setMinimum(1);
+    refSpin->setMaximum(INT_MAX);
+    refSpin->setValue(this->referenceWidth());
+    refSpin->setWhatsThis(tr("Set refenence width, picture will use it as it's width <b>as much as possible</b>."));
+    connect(refSpin, QOverload<int>::of(&QSpinBox::valueChanged), [this](int i) {
         this->refWidth_ = i;
         emit this->refWidthChanged(this->referenceWidth());
     });
 
-    // connect(this, &PlugSettings::refWidthChanged, [&](qreal refWidth) {
-    //     spinBox->setValue(refWidth);
-    // });
     QLabel* lbl = new QLabel(tr("Reference width"), this);
-    lbl->setBuddy(spinBox);
+    lbl->setBuddy(refSpin);
     QWidget* w = new QWidget(this);
     w->setLayout(new QHBoxLayout(this));
     w->layout()->addWidget(lbl);
-    w->layout()->addWidget(spinBox);
+    w->layout()->addWidget(refSpin);
     return w;
 }
 bool PlugSettings::useCustomLoader() {
