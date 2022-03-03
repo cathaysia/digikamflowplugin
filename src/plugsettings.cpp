@@ -95,6 +95,9 @@ void PlugSettings::reject() {
     spacingSpin->setValue(spacing_);
     refSpin->setValue(refWidth_);
 
+    emit spacingChanged(spacing());
+    emit signalStyleChanged(style());
+    emit refWidthChanged(referenceWidth());
     QDialog::reject();
 }
 
