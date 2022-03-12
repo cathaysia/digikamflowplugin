@@ -142,6 +142,7 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
 
 void PicDialog::load(const QUrl& url, bool loadByPool) {
     INSERT_CANCEL_POINT;
+    qDebug() << "Load image: " << url.toLocalFile();
     if(!loadByPool) {
         if(!t_) {
             static PreviewLoadThread t;

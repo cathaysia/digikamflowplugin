@@ -99,6 +99,7 @@ void FlowPlugin::flowView() {
     dialog->show();
 
     auto items = iface_->currentAlbumItems();
+    qDebug() << "These images will be loaded: " << items;
     for(auto& it: items) dialog->load(it, settings_->useCustomLoader());
 }
 
