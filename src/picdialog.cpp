@@ -16,6 +16,7 @@
 #include "picdialog.hpp"
 
 #include <QApplication>
+#include <QImageReader>
 #include <QLabel>
 #include <QPixmap>
 #include <QScrollArea>
@@ -164,9 +165,9 @@ void PicDialog::load(const QUrl& url, bool loadByPool) {
     }
     auto task = [this](QUrl const& url) {
         INSERT_CANCEL_POINT;
-        DImg dimg(url.toLocalFile());
-        INSERT_CANCEL_POINT;
-        QPixmap pix = dimg.convertToPixmap();
+        QImageReader imgReader(url.toLocalFile());
+        imgReader.setAutoTransform(true);
+        QPixmap pix = QPixmap::fromImage(imgReader.read());
         if(pix.isNull()) {
             qDebug() << "Image " << url.toLocalFile() << " load failed";
             return;
