@@ -50,6 +50,7 @@ In a word, the difference between "Custom Loader" with "Digikam Loader" is:
   occpuation of mermory
 - If this plugin closed before all pictures be loaded, "Digikam Loader" may cause digikam crash.
 - "Custom Loader" will use full of your CPUs to speed up pictures's load.
+- "Digikam Loader" support more image format
 
 ## Why some pictures not shown?
 
