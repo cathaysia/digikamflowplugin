@@ -23,6 +23,7 @@
 #include <QSettings>
 #include <QSpinBox>
 #include <QString>
+#include <QDebug>
 
 namespace Cathaysia {
 
@@ -51,7 +52,7 @@ PlugSettings::PlugSettings(QWidget* const parent)
     m_buttons->addButton(QDialogButtonBox::Cancel);
     m_buttons->button(QDialogButtonBox::Ok)->setDefault(true);
 
-    setLayout(new QVBoxLayout(this));
+    setLayout(new QVBoxLayout);
 
     layout()->addWidget(getStyleOption());
     layout()->addWidget(getSpacingOption());
@@ -116,7 +117,7 @@ QWidget* PlugSettings::getStyleOption() {
     QLabel* lbl = new QLabel(tr("Style"), this);
     lbl->setBuddy(styleBox);
     QWidget* w = new QWidget(this);
-    w->setLayout(new QHBoxLayout(this));
+    w->setLayout(new QHBoxLayout);
     w->layout()->addWidget(lbl);
     w->layout()->addWidget(styleBox);
     return w;
@@ -145,7 +146,7 @@ QWidget* PlugSettings::getLoaderOption() {
     QLabel* lbl = new QLabel(tr("Image Loader"), this);
     lbl->setBuddy(loaderBox);
     QWidget* w = new QWidget(this);
-    w->setLayout(new QHBoxLayout(this));
+    w->setLayout(new QHBoxLayout);
     w->layout()->addWidget(lbl);
     w->layout()->addWidget(loaderBox);
     return w;
@@ -167,7 +168,7 @@ QWidget* PlugSettings::getSpacingOption() {
     QLabel* lbl = new QLabel(tr("Spacing"), this);
     lbl->setBuddy(spacingSpin);
     QWidget* w = new QWidget(this);
-    w->setLayout(new QHBoxLayout(this));
+    w->setLayout(new QHBoxLayout);
     w->layout()->addWidget(lbl);
     w->layout()->addWidget(spacingSpin);
     return w;
@@ -187,7 +188,7 @@ QWidget* PlugSettings::getRefWidthOption() {
     QLabel* lbl = new QLabel(tr("Reference width"), this);
     lbl->setBuddy(refSpin);
     QWidget* w = new QWidget(this);
-    w->setLayout(new QHBoxLayout(this));
+    w->setLayout(new QHBoxLayout);
     w->layout()->addWidget(lbl);
     w->layout()->addWidget(refSpin);
     return w;
