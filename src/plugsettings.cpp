@@ -45,7 +45,7 @@ PlugSettings::PlugSettings(QWidget* const parent)
     , settings_(new QSettings(QStringLiteral("cathaysia.digikam.flowview"), qApp->applicationName(), this))
     , style_(settings_->value("style", "Col").toString())
     , spacing_(settings_->value("spacing", 3).toInt())
-    , useCustomLoader_(settings_->value("useCustomLoader", true).toBool())
+    , useCustomLoader_(settings_->value("useCustomLoader", false).toBool())
     , refWidth_(settings_->value("refWidth", 300).toInt()) {
 
     m_buttons->addButton(QDialogButtonBox::Ok);
@@ -84,7 +84,7 @@ void PlugSettings::reject() {
     // restore();
     style_           = settings_->value("style", "Col").toString();
     spacing_         = settings_->value("spacing", 3).toInt();
-    useCustomLoader_ = settings_->value("useCustomLoader", true).toBool();
+    useCustomLoader_ = settings_->value("useCustomLoader", false).toBool();
     refWidth_        = settings_->value("refWidth", 300).toInt();
     // reload setting-widget's value
     styleBox->setCurrentText(style_);
