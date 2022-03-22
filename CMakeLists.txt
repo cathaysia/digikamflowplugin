@@ -1,5 +1,5 @@
 #
-# Copyright (c) 2021-2022, Cathaysia, <DragonBillow at outlook dot com>
+# Copyright (c) 2021-2022, DragonBillow, <DragonBillow at outlook dot com>
 #
 # Redistribution and use is allowed according to the terms of the BSD license.
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
