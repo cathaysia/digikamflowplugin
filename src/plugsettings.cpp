@@ -16,6 +16,7 @@
 
 #include <QApplication>
 #include <QComboBox>
+#include <QDebug>
 #include <QDialogButtonBox>
 #include <QLabel>
 #include <QMetaEnum>
@@ -52,10 +53,7 @@ inline const QString strLoaderDigikam() {
 PlugSettings::PlugSettings(QWidget* const parent)
     : DPluginDialog(parent, QStringLiteral("FlowPlugSettings"))
     , settings_(new QSettings(QStringLiteral("cathaysia.digikam.flowview"), qApp->applicationName(), this))
-    , style_(settings_->value("style", "Col").toString())
-    , spacing_(settings_->value("spacing", 3).toInt())
-    , useCustomLoader_(settings_->value("useCustomLoader", false).toBool())
-    , refWidth_(settings_->value("refWidth", 300).toInt()) {
+    , useCustomLoader_(settings_->value("useCustomLoader", false).toBool()) {
 
     m_buttons->addButton(QDialogButtonBox::Ok);
     m_buttons->addButton(QDialogButtonBox::Cancel);
@@ -78,10 +76,10 @@ PlugSettings::PlugSettings(QWidget* const parent)
 
 void PlugSettings::accept() {
     // store();
-    settings_->setValue("spacing", spacing_);
-    settings_->setValue("style", style_);
+    settings_->setValue("spacing", spacingSpin->value());
+    settings_->setValue("style", styleBox->currentText());
     settings_->setValue("useCustomLoader", useCustomLoader_);
-    settings_->setValue("refWidth", refWidth_);
+    settings_->setValue("refWidth", refSpin->value());
 
     emit spacingChanged(spacing());
     emit signalStyleChanged(style());
@@ -90,20 +88,20 @@ void PlugSettings::accept() {
 }
 
 void PlugSettings::reject() {
-    // restore();
-    style_           = settings_->value("style", "Col").toString();
-    spacing_         = settings_->value("spacing", 3).toInt();
-    useCustomLoader_ = settings_->value("useCustomLoader", false).toBool();
-    refWidth_        = settings_->value("refWidth", 300).toInt();
+    // // restore();
+    // style_           = settings_->value("style", "Col").toString();
+    // spacing_         = settings_->value("spacing", 3).toInt();
+    // useCustomLoader_ = settings_->value("useCustomLoader", false).toBool();
+    // refWidth_        = settings_->value("refWidth", 300).toInt();
     // reload setting-widget's value
-    styleBox->setCurrentText(style_);
+    styleBox->setCurrentText(style());
 
     if(useCustomLoader_) loaderBox->setCurrentText(strLoaderCustom());
     else
         loaderBox->setCurrentText(strLoaderDigikam());
 
-    spacingSpin->setValue(spacing_);
-    refSpin->setValue(refWidth_);
+    spacingSpin->setValue(spacing());
+    refSpin->setValue(referenceWidth());
 
     emit spacingChanged(spacing());
     emit signalStyleChanged(style());
@@ -116,11 +114,10 @@ QWidget* PlugSettings::getStyleOption() {
     QStringList list;
     list << tr("Row") << tr("Col") << tr("Square");
     styleBox->addItems(list);
-    styleBox->setCurrentText(style_);
+    styleBox->setCurrentText(style());
     connect(styleBox, &QComboBox::currentTextChanged, [this](QString const& result) {
-        if(style_ == result) return;
-        this->style_ = result;
-        emit this->signalStyleChanged(this->style());
+        if(result == style()) return;
+        emit this->signalStyleChanged(result);
     });
 
     return ARRANGE_WIDGET(tr("Style"), styleBox, this);
@@ -155,8 +152,7 @@ QWidget* PlugSettings::getSpacingOption() {
     spacingSpin->setMaximum(INT_MAX);
     spacingSpin->setValue(spacing());
     connect(spacingSpin, QOverload<int>::of(&QSpinBox::valueChanged), [this](int i) {
-        this->spacing_ = i;
-        emit this->spacingChanged(this->spacing());
+        emit this->spacingChanged(i);
     });
 
     // connect(this, &PlugSettings::spacingChanged, [&](int spacing) {
@@ -173,8 +169,7 @@ QWidget* PlugSettings::getRefWidthOption() {
     refSpin->setValue(this->referenceWidth());
     refSpin->setWhatsThis(tr("Set refenence width, picture will use it as it's width <b>as much as possible</b>."));
     connect(refSpin, QOverload<int>::of(&QSpinBox::valueChanged), [this](int i) {
-        this->refWidth_ = i;
-        emit this->refWidthChanged(this->referenceWidth());
+        emit this->refWidthChanged(i);
     });
 
     return ARRANGE_WIDGET(tr("Reference widget"), refSpin, this);
@@ -183,18 +178,12 @@ bool PlugSettings::useCustomLoader() {
     return useCustomLoader_;
 }
 int PlugSettings::spacing() {
-    return spacing_;
+    return settings_->value("spacing", 3).toInt();
 }
 int PlugSettings::referenceWidth() {
-    return refWidth_;
+    return settings_->value("refWidth", 300).toInt();
 }
 Z::Style PlugSettings::style() {
-    if(style_ == "Row") {
-        return Z::Style::Row;
-    } else if(style_ == "Square") {
-        return Z::Style::Square;
-    } else {
-        return Z::Style::Col;
-    }
+    return settings_->value("style", "Col").toString();
 }
 }    // namespace Cathaysia

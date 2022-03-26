@@ -51,9 +51,6 @@ signals:
 
 private:
     QSettings* settings_;
-    QString    style_;
     bool       useCustomLoader_;
-    int        spacing_;
-    int        refWidth_;
 };
 }    // namespace Cathaysia
