@@ -23,7 +23,16 @@
 #include <QSettings>
 #include <QSpinBox>
 #include <QString>
-#include <QDebug>
+
+QWidget* ARRANGE_WIDGET(const QString& lblText, QWidget* widget, QWidget* parent) {
+    QLabel* lbl = new QLabel(lblText, parent);
+    lbl->setBuddy(widget);
+    QWidget* w = new QWidget(parent);
+    w->setLayout(new QHBoxLayout);
+    w->layout()->addWidget(lbl);
+    w->layout()->addWidget(widget);
+    return w;
+}
 
 namespace Cathaysia {
 
@@ -114,13 +123,7 @@ QWidget* PlugSettings::getStyleOption() {
         emit this->signalStyleChanged(this->style());
     });
 
-    QLabel* lbl = new QLabel(tr("Style"), this);
-    lbl->setBuddy(styleBox);
-    QWidget* w = new QWidget(this);
-    w->setLayout(new QHBoxLayout);
-    w->layout()->addWidget(lbl);
-    w->layout()->addWidget(styleBox);
-    return w;
+    return ARRANGE_WIDGET(tr("Style"), styleBox, this);
 }
 
 QWidget* PlugSettings::getLoaderOption() {
@@ -143,13 +146,7 @@ QWidget* PlugSettings::getLoaderOption() {
             this->useCustomLoader_ = true;
     });
 
-    QLabel* lbl = new QLabel(tr("Image Loader"), this);
-    lbl->setBuddy(loaderBox);
-    QWidget* w = new QWidget(this);
-    w->setLayout(new QHBoxLayout);
-    w->layout()->addWidget(lbl);
-    w->layout()->addWidget(loaderBox);
-    return w;
+    return ARRANGE_WIDGET(tr("Image Loader"), loaderBox, this);
 };
 
 QWidget* PlugSettings::getSpacingOption() {
@@ -165,13 +162,8 @@ QWidget* PlugSettings::getSpacingOption() {
     // connect(this, &PlugSettings::spacingChanged, [&](int spacing) {
     //     spinBox->setValue(this->spacing());
     // });
-    QLabel* lbl = new QLabel(tr("Spacing"), this);
-    lbl->setBuddy(spacingSpin);
-    QWidget* w = new QWidget(this);
-    w->setLayout(new QHBoxLayout);
-    w->layout()->addWidget(lbl);
-    w->layout()->addWidget(spacingSpin);
-    return w;
+
+    return ARRANGE_WIDGET(tr("Spacing"), spacingSpin, this);
 }
 
 QWidget* PlugSettings::getRefWidthOption() {
@@ -185,13 +177,7 @@ QWidget* PlugSettings::getRefWidthOption() {
         emit this->refWidthChanged(this->referenceWidth());
     });
 
-    QLabel* lbl = new QLabel(tr("Reference width"), this);
-    lbl->setBuddy(refSpin);
-    QWidget* w = new QWidget(this);
-    w->setLayout(new QHBoxLayout);
-    w->layout()->addWidget(lbl);
-    w->layout()->addWidget(refSpin);
-    return w;
+    return ARRANGE_WIDGET(tr("Reference widget"), refSpin, this);
 }
 bool PlugSettings::useCustomLoader() {
     return useCustomLoader_;
