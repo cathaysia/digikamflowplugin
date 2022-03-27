@@ -20,9 +20,10 @@
 #include <QDialog>
 #include <QHBoxLayout>
 
-inline double sizeFactor(QSize const &a) {
-    if(a.height() == 0) return 0;
-    return a.width() * 100.f / a.height() / 100;
+// Only three decimal place
+inline qreal sizeFactor(QSize const &a) {
+    if(!a.height() || !a.width()) return 0;
+    return a.width() * 1000 / a.height() / 1000.f;
 }
 
 AspectRatioPixmapLabel::AspectRatioPixmapLabel(QWidget *parent) : QLabel(parent) {
@@ -45,20 +46,27 @@ QPixmap AspectRatioPixmapLabel::scaledPixmap() const {
      * at this time, image is bigger than QSize()
      * then clip image to this->size()
      */
-    if(pix_.height() < heightForWidth(pix_.width())) {
-        QImage const &res = pix_.copy(0, 0, widthForHeight(pix_.height()), pix_.height());
+    if(heightForWidth(width()) < height()) {
+        // width 相对变小
+        auto tmp = pix_.scaled(widthForHeight(height()), height(), Qt::KeepAspectRatioByExpanding,
+                               Qt::TransformationMode::FastTransformation);
+        auto res = tmp.copy(0, 0, width(), height());
         return QPixmap::fromImage(res);
     }
-    QImage const &res = pix_.copy(0, 0, pix_.width(), heightForWidth(pix_.width()));
+
+    auto tmp = pix_.scaled(width(), heightForWidth(width()), Qt::KeepAspectRatioByExpanding,
+                           Qt::TransformationMode::FastTransformation);
+    auto res = tmp.copy(0, 0, width(), height());
     return QPixmap::fromImage(res);
 }
 
 void AspectRatioPixmapLabel::adjust() {
     if(pix_.isNull()) return;
-    if(size().height() && (sizeFactor(size()) != scaleFactor_)) return;
+    qreal scaleFactor = sizeFactor(size());
+    if(!scaleFactor || (scaleFactor == scaleFactor_)) return;
+    scaleFactor_ = scaleFactor;
 
-    scaleFactor_ = sizeFactor(size());
-    setPixmap(scaledPixmap());
+    QLabel::setPixmap(scaledPixmap());
 }
 int AspectRatioPixmapLabel::heightForWidth(int w) const {
     // height = width*(y/x)
