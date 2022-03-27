@@ -123,21 +123,17 @@ void PicDialog::add(const QPixmap& pix) {
 
 // Update layout after the size of dialog has changed
 bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
-    // eventFilter for this self
+    if(event->type() != QEvent::Resize) return false;
     auto dialog = qobject_cast<PicDialog*>(watched);
-    if(dialog) {
-        if(event->type() == QEvent::Resize) {
-            box_->resize(dialog->width(), layout_->innerHeight());
-            for(int i = 0; i < layout_->count(); ++i) {
-                // adjust images's size
-                layout_->setGeometry(layout_->geometry());
-                auto lbl = qobject_cast<AspectRatioPixmapLabel*>(layout_->itemAt(i)->widget());
-                if(!lbl) continue;
-                lbl->adjust();
-            }
-        }
+    if(!dialog) return false;
+
+    for(int i = 0; i < layout_->count(); ++i) {
+        auto lbl = qobject_cast<AspectRatioPixmapLabel*>(layout_->itemAt(i)->widget());
+        if(!lbl) continue;
+        lbl->adjust();
     }
-    return false;
+    box_->resize(dialog->width(), layout_->innerHeight());
+    return true;
 }
 
 void PicDialog::load(const QUrl& url, bool loadByPool) {
