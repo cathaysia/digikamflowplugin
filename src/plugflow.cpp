@@ -23,9 +23,60 @@
 
 namespace Cathaysia {
 
+void logHandler(QtMsgType type, const QMessageLogContext& context, const QString& msg) {
+    QByteArray  localMsg = msg.toLocal8Bit();
+    const char* file     = context.file ? context.file : "";
+    const char* function = context.function ? context.function : "";
+
+    switch(type) {
+        case QtDebugMsg:
+            fprintf(stderr,
+                    "cathaysia.digikam.flowview(Debug): %s (%s:%u, %s)\n",
+                    localMsg.constData(),
+                    file,
+                    context.line,
+                    function);
+            break;
+        case QtInfoMsg:
+            fprintf(stderr,
+                    "cathaysia.digikam.flowview(Info): %s (%s:%u, %s)\n",
+                    localMsg.constData(),
+                    file,
+                    context.line,
+                    function);
+            break;
+        case QtWarningMsg:
+            fprintf(stderr,
+                    "cathaysia.digikam.flowview(Warning): %s (%s:%u, %s)\n",
+                    localMsg.constData(),
+                    file,
+                    context.line,
+                    function);
+            break;
+        case QtCriticalMsg:
+            fprintf(stderr,
+                    "cathaysia.digikam.flowview(Critical): %s (%s:%u, %s)\n",
+                    localMsg.constData(),
+                    file,
+                    context.line,
+                    function);
+            break;
+        case QtFatalMsg:
+            fprintf(stderr,
+                    "cathaysia.digikam.flowview(Fatal): %s (%s:%u, %s)\n",
+                    localMsg.constData(),
+                    file,
+                    context.line,
+                    function);
+            break;
+    }
+}
+
 FlowPlugin::FlowPlugin(QObject* const parent) : DPluginGeneric(parent), iface_(nullptr), settings_(nullptr) {
     settings_ = new PlugSettings(nullptr);
     settings_->setPlugin(this);
+
+    qInstallMessageHandler(logHandler);
 }
 
 FlowPlugin::~FlowPlugin() noexcept {
