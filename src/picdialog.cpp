@@ -59,7 +59,7 @@ PicDialog::PicDialog(QWidget* parent)
     // clang-format off
     connect(this, &PicDialog::signalPixLoaded, this
             , QOverload<QPixmap const&>::of(&PicDialog::add)
-            , Qt::QueuedConnection);
+            , Qt::BlockingQueuedConnection);
     // clang-format on
 }
 
