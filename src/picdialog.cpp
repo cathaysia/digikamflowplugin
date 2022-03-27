@@ -54,8 +54,6 @@ PicDialog::PicDialog(QWidget* parent)
 
     box_->setLayout(layout_);
 
-    // Set ReferenceWidth
-    layout_->setRefWidth(300);
     // clang-format off
     connect(this, &PicDialog::signalPixLoaded, this
             , QOverload<QPixmap const&>::of(&PicDialog::add)
@@ -65,12 +63,10 @@ PicDialog::PicDialog(QWidget* parent)
 
 PicDialog::~PicDialog() {
     this->stop_ = true;
-    if(pool_) { pool_->waitForDone(1000); }
+    if(t_) t_->stop();
+    if(pool_) pool_->waitForDone(1000);
 
-    if(t_) {
-        t_->stop();
-        t_->wait();
-    }
+    if(t_) t_->wait();
 }
 
 void PicDialog::setReferenceWidth(qreal width) {
