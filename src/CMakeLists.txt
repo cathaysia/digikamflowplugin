@@ -4,16 +4,35 @@
 # Redistribution and use is allowed according to the terms of the BSD license.
 # For details see the accompanying COPYING-CMAKE-SCRIPTS file.
 
-set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTOMOC ON)
 
-# set QT_VERSION_MAJOR
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Core)
+if(BUILD_WITH_QT6)
 
-find_package(
-    Qt${QT_VERSION_MAJOR} NO_MODULE
-    COMPONENTS Core Widgets Gui
-    REQUIRED)
+    find_package(Qt6 "6.5.0" REQUIRED
+                 NO_MODULE COMPONENTS
+                 Core
+                 Widgets
+                 Gui
+                 Concurrent
+    )
+
+    set(QT_VERSION_MAJOR 6)
+
+else()
+
+    find_package(Qt5 "5.6.0" REQUIRED
+                 NO_MODULE COMPONENTS
+                 Core
+                 Widgets
+                 Gui
+                 Concurrent
+    )
+
+    set(QT_VERSION_MAJOR 5)
+
+endif()
+
+
 find_package(DigikamCore CONFIG REQUIRED)
 
 set_package_properties(
@@ -26,9 +45,7 @@ include(FindThreads REQUIRED)
 # For i18n support...
 # include(i18nUtils)
 
-include_directories(
-    $<TARGET_PROPERTY:Digikam::digikamcore,INTERFACE_INCLUDE_DIRECTORIES>/digikam
-)
+include_directories($<TARGET_PROPERTY:Digikam::digikamcore,INTERFACE_INCLUDE_DIRECTORIES>)
 
 set(PicFlowView_generic_SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/plugflow.cpp
