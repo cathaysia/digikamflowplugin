@@ -23,13 +23,14 @@
 #include <QUrl>
 
 #include "aspectratiopixmaplabel.hpp"
+#include "digikam_debug.h"
 
-#define INSERT_CANCEL_POINT                   \
-    do {                                      \
-        if(stop_) {                           \
-            qDebug() << "Cancel load images"; \
-            return;                           \
-        }                                     \
+#define INSERT_CANCEL_POINT                                               \
+    do {                                                                  \
+        if(stop_) {                                                       \
+            qCDebug(DIGIKAM_DPLUGIN_GENERIC_LOG) << "Cancel load images"; \
+            return;                                                       \
+        }                                                                 \
     } while(0)
 
 #define POST_RESIZE_EVENT(obj) (qApp->postEvent(obj, new QResizeEvent(this->size(), this->size())))
@@ -95,7 +96,7 @@ void PicDialog::setStyle(Z::Style sty) {
 void PicDialog::add(LoadingDescription const& desc, DImg const& dimg) {
     qApp->processEvents();
     if(dimg.isNull()) {
-        qDebug() << "DImg " << desc.filePath << " load failed";
+        qCDebug(DIGIKAM_DPLUGIN_GENERIC_LOG) << "DImg " << desc.filePath << " load failed";
         return;
     }
     INSERT_CANCEL_POINT;
@@ -133,7 +134,7 @@ bool PicDialog::eventFilter(QObject* watched, QEvent* event) {
 
 void PicDialog::load(const QUrl& url, bool loadByPool) {
     INSERT_CANCEL_POINT;
-    qDebug() << "Load image: " << url.toLocalFile();
+    qCDebug(DIGIKAM_DPLUGIN_GENERIC_LOG) << "Load image: " << url.toLocalFile();
     if(!loadByPool) {
         if(!t_) {
             static PreviewLoadThread t;
@@ -161,7 +162,7 @@ void PicDialog::load(const QUrl& url, bool loadByPool) {
         imgReader.setAutoTransform(true);
         QPixmap pix = QPixmap::fromImage(imgReader.read());
         if(pix.isNull()) {
-            qDebug() << "Image " << url.toLocalFile() << " load failed";
+            qCDebug(DIGIKAM_DPLUGIN_GENERIC_LOG) << "Image " << url.toLocalFile() << " load failed";
             return;
         }
         INSERT_CANCEL_POINT;

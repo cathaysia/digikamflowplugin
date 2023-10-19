@@ -14,6 +14,8 @@ project(
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(BUILD_WITH_QT6 "Build with Qt6, else Qt5" OFF)
+
 # Use common cmake macro from cmake/modules/ to install unistall plugins.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/modules")
 
